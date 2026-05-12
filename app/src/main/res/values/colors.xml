@@ -1,0 +1,19 @@
+<resources>
+    <color name="brand_primary">#1E3A8A</color>
+    <color name="brand_primary_dark">#172554</color>
+    <color name="brand_secondary">#3B82F6</color>
+    <color name="brand_accent">#F59E0B</color>
+    <color name="brand_text">#111827</color>
+    <color name="brand_muted">#6B7280</color>
+    <color name="brand_background">#F9FAFB</color>
+    <color name="brand_surface">#FFFFFF</color>
+    <color name="brand_border">#E5E7EB</color>
+    <color name="brand_divider">#EEF2F7</color>
+    <color name="brand_primary_soft">#DBEAFE</color>
+    <color name="brand_accent_soft">#FEF3C7</color>
+    <color name="success">#059669</color>
+    <color name="warning">#D97706</color>
+    <color name="error">#DC2626</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+</resources>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="4dp"
+    android:layout_marginTop="10dp"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardBackgroundColor="@color/brand_surface"
+    app:cardCornerRadius="22dp"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/brand_border"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="18dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_link" />
+
+            <TextView
+                android:id="@+id/statusTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:background="@drawable/bg_chip_primary"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="7dp"
+                android:textColor="@color/brand_primary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                tools:text="Processing" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/urlTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/brand_text"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            tools:text="https://www.instagram.com/reel/C12345/" />
+
+        <TextView
+            android:id="@+id/verdictTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/bg_chip_accent"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="8dp"
+            android:textColor="@color/brand_muted"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            tools:text="Verdict: Misleading" />
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>
