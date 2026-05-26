@@ -4,7 +4,11 @@ import android.content.Context
 import retrofit2.HttpException
 import com.instafact.app.R
 import com.instafact.app.data.api.ApiService
+import com.instafact.app.data.model.ChatHistoryResponse
+import com.instafact.app.data.model.ChatMessageRequest
+import com.instafact.app.data.model.ChatMessageResponse
 import com.instafact.app.data.model.DetailResponse
+import com.instafact.app.data.model.ExploreItemResponse
 import com.instafact.app.data.model.FeedbackRequest
 import com.instafact.app.data.model.FeedbackResponse
 import com.instafact.app.data.model.FeedbackType
@@ -34,6 +38,45 @@ class SubmissionRepository(
     suspend fun getDetail(queryId: Int): Result<DetailResponse> = withContext(Dispatchers.IO) {
         runCatching {
             apiService.getDetail(queryId)
+        }.fold(
+            onSuccess = { Result.success(it) },
+            onFailure = { Result.failure(Exception(ApiErrorParser.getMessage(context, it), it)) },
+        )
+    }
+
+    suspend fun getExplore(limit: Int = 20): Result<List<ExploreItemResponse>> = withContext(Dispatchers.IO) {
+        runCatching {
+            apiService.getExplore(limit)
+        }.fold(
+            onSuccess = { Result.success(it) },
+            onFailure = { Result.failure(Exception(ApiErrorParser.getMessage(context, it), it)) },
+        )
+    }
+
+    suspend fun getChatHistory(queryId: Int): Result<ChatHistoryResponse> = withContext(Dispatchers.IO) {
+        runCatching {
+            apiService.getChatHistory(
+                userId = requireUserId(),
+                queryId = queryId,
+            )
+        }.fold(
+            onSuccess = { Result.success(it) },
+            onFailure = { Result.failure(Exception(ApiErrorParser.getMessage(context, it), it)) },
+        )
+    }
+
+    suspend fun sendChatMessage(
+        queryId: Int,
+        message: String,
+    ): Result<ChatMessageResponse> = withContext(Dispatchers.IO) {
+        runCatching {
+            apiService.sendChatMessage(
+                ChatMessageRequest(
+                    userId = requireUserId(),
+                    queryId = queryId,
+                    message = message,
+                ),
+            )
         }.fold(
             onSuccess = { Result.success(it) },
             onFailure = { Result.failure(Exception(ApiErrorParser.getMessage(context, it), it)) },
@@ -87,6 +130,10 @@ class SubmissionRepository(
     }
 
     fun hasVoted(queryId: Int): Boolean = preferenceManager.hasUserVoted(queryId)
+
+    fun getUserId(): Int? = preferenceManager.getUserId()
+
+    fun getPhoneNumber(): String? = preferenceManager.getPhoneNumber()
 
     private fun requireUserId(): Int {
         return preferenceManager.getUserId()

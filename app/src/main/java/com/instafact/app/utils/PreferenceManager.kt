@@ -25,6 +25,19 @@ class PreferenceManager(context: Context) {
         }
     }
 
+    fun clearUserSession() {
+        val fcmToken = getFcmToken()
+        sharedPreferences.edit {
+            remove(KEY_USER_ID)
+            remove(KEY_AUTH_TOKEN)
+            remove(KEY_PHONE_NUMBER)
+            remove(KEY_VOTED_QUERY_IDS)
+            if (fcmToken != null) {
+                putString(KEY_FCM_TOKEN, fcmToken)
+            }
+        }
+    }
+
     fun getUserId(): Int? {
         if (!sharedPreferences.contains(KEY_USER_ID)) return null
         return sharedPreferences.getInt(KEY_USER_ID, -1).takeIf { it > 0 }

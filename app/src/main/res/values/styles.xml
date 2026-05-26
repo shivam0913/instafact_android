@@ -1,0 +1,29 @@
+<resources>
+    <style name="TextAppearance.Instafact.BottomNav.Active" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textSize">10sp</item>
+    </style>
+
+    <style name="TextAppearance.Instafact.BottomNav.Inactive" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textSize">10sp</item>
+    </style>
+
+    <style name="InstafactShapeAppearanceThumbSmall">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">18dp</item>
+    </style>
+
+    <style name="InstafactShapeAppearanceThumbHighlight">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">22dp</item>
+    </style>
+
+    <style name="InstafactShapeAppearanceThumbHero">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">28dp</item>
+    </style>
+
+    <style name="InstafactShapeAppearanceAvatar">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">29dp</item>
+    </style>
+</resources>

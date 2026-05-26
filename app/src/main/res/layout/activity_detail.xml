@@ -1,321 +1,399 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_screen"
+    android:background="@color/brand_background"
     tools:context=".ui.detail.DetailActivity">
 
-    <LinearLayout
-        android:id="@+id/topBar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingHorizontal="20dp"
-        android:paddingTop="24dp"
-        android:paddingBottom="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <ImageButton
-            android:id="@+id/backButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="@drawable/bg_chip_primary"
-            android:contentDescription="@string/detail_title"
-            android:src="@android:drawable/ic_media_previous" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="@string/detail_title"
-            android:textColor="@color/brand_text"
-            android:textSize="26sp"
-            android:textStyle="bold" />
-    </LinearLayout>
-
-    <ProgressBar
-        android:id="@+id/detailProgressBar"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/topBar" />
-
-    <TextView
-        android:id="@+id/detailErrorTextView"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:paddingHorizontal="24dp"
-        android:textColor="@color/error"
-        android:textSize="15sp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/topBar"
-        tools:text="Unable to load the fact-check result." />
-
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:id="@+id/contentScrollView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:fillViewport="true"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/feedbackContainer"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/topBar">
+        android:visibility="gone">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingHorizontal="16dp"
-            android:paddingBottom="20dp">
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:id="@+id/heroContainer"
+                android:layout_width="match_parent"
+                android:layout_height="312dp"
+                android:background="@drawable/bg_detail_hero">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginTop="70dp"
+                    android:layout_marginBottom="34dp"
+                    android:background="@drawable/bg_media_placeholder">
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/thumbnailImageView"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="@null"
+                        android:scaleType="centerCrop"
+                        app:shapeAppearanceOverlay="@style/InstafactShapeAppearanceThumbHero"
+                        tools:src="@drawable/ic_launcher" />
+
+                    <LinearLayout
+                        android:layout_width="72dp"
+                        android:layout_height="72dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_light_icon_circle"
+                        android:gravity="center">
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:contentDescription="@string/detail_play"
+                            android:src="@drawable/ic_play_filled"
+                            app:tint="@color/brand_primary" />
+                    </LinearLayout>
+                </FrameLayout>
+
+                <LinearLayout
+                    android:id="@+id/topBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp"
+                    android:paddingTop="10dp">
+
+                    <ImageButton
+                        android:id="@+id/backButton"
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:background="@android:color/transparent"
+                        android:contentDescription="@string/drawer_close"
+                        android:src="@drawable/ic_back_round" />
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
+
+                    <ImageButton
+                        android:id="@+id/bookmarkButton"
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:background="@android:color/transparent"
+                        android:contentDescription="@string/detail_share_bookmark"
+                        android:src="@drawable/ic_bookmark_outline" />
+
+                    <ImageButton
+                        android:id="@+id/shareButton"
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:background="@android:color/transparent"
+                        android:contentDescription="@string/share_result"
+                        android:src="@drawable/ic_share"
+                        app:tint="@color/white" />
+                </LinearLayout>
+            </FrameLayout>
 
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/contentCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardBackgroundColor="@android:color/transparent"
-                app:cardCornerRadius="28dp"
+                android:layout_marginTop="-26dp"
+                app:cardBackgroundColor="@color/brand_surface"
+                app:cardCornerRadius="30dp"
                 app:cardElevation="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_hero_panel"
-                    android:orientation="vertical"
-                    android:padding="22dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/bg_chip_surface"
-                        android:paddingHorizontal="12dp"
-                        android:paddingVertical="7dp"
-                        android:text="@string/label_ready_for_review"
-                        android:textColor="@color/white"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/statusTextView"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:textColor="@color/white"
-                        android:textSize="28sp"
-                        android:textStyle="bold"
-                        tools:text="Completed" />
-
-                    <TextView
-                        android:id="@+id/verdictTextView"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:background="@drawable/bg_chip_surface"
-                        android:paddingHorizontal="14dp"
-                        android:paddingVertical="8dp"
-                        android:textColor="@color/white"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        tools:text="Misleading" />
-
-                    <TextView
-                        android:id="@+id/confidenceTextView"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
-                        android:textColor="#E5E7EB"
-                        android:textSize="15sp"
-                        tools:text="92%" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                app:cardBackgroundColor="@color/brand_surface"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/brand_border"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="20dp">
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:id="@+id/statusTextView"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/label_video_url"
-                        android:textColor="@color/brand_muted"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
+                        android:textColor="@color/brand_text"
+                        android:textSize="30sp"
+                        android:textStyle="bold"
+                        tools:text="Lemon water melts fat instantly in the morning?" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:id="@+id/platformImageView"
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_instagram" />
+
+                        <TextView
+                            android:id="@+id/platformNameTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:textColor="@color/brand_muted"
+                            android:textSize="12sp"
+                            tools:text="Instagram Reel" />
+
+                        <TextView
+                            android:id="@+id/videoMetaTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:textColor="@color/brand_muted"
+                            android:textSize="12sp"
+                            tools:text="• Posted 3d ago" />
+                    </LinearLayout>
 
                     <TextView
                         android:id="@+id/videoUrlTextView"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:textColor="@color/brand_text"
-                        android:textSize="16sp"
-                        tools:text="https://www.youtube.com/shorts/abc123" />
+                        android:layout_marginTop="10dp"
+                        android:autoLink="web"
+                        android:textColor="@color/brand_primary"
+                        android:textSize="13sp"
+                        tools:text="https://www.instagram.com/reel/example" />
 
-                    <View
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/verdictBannerCard"
                         android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:layout_marginVertical="16dp"
-                        android:background="@color/brand_divider" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/label_status"
-                        android:textColor="@color/brand_muted"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:textColor="@color/brand_text"
-                        android:textSize="16sp"
-                        tools:text="Completed" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="18dp"
-                        android:text="@string/label_verdict"
-                        android:textColor="@color/brand_muted"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
+                        app:cardCornerRadius="18dp"
+                        app:cardElevation="0dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="16dp"
+                            android:paddingVertical="14dp">
+
+                            <ImageView
+                                android:id="@+id/verdictIconImageView"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_link"
+                                app:tint="@color/white" />
+
+                            <TextView
+                                android:id="@+id/verdictTextView"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="10dp"
+                                android:layout_weight="1"
+                                android:textColor="@color/white"
+                                android:textSize="24sp"
+                                android:textStyle="bold"
+                                tools:text="Misleading" />
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/confidence_label"
+                                    android:textColor="#FDFDFD"
+                                    android:textSize="11sp" />
+
+                                <TextView
+                                    android:id="@+id/confidenceTextView"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textColor="@color/white"
+                                    android:textSize="22sp"
+                                    android:textStyle="bold"
+                                    tools:text="68%" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/verifiedChipTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_chip_primary"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="6dp"
+                            android:text="@string/ai_verified"
+                            android:textColor="@color/brand_text"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/checkedSourcesChipTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/bg_chip_primary"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="6dp"
+                            android:text="@string/checked_sources_count"
+                            android:textColor="@color/brand_text"
+                            android:textSize="12sp"
+                            tools:text="Checked 3 sources" />
+                    </LinearLayout>
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:id="@+id/explanationTitleTextView"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:textColor="@color/brand_text"
-                        android:textSize="16sp"
-                        tools:text="Misleading" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="18dp"
-                        android:text="@string/label_confidence"
-                        android:textColor="@color/brand_muted"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:textColor="@color/brand_text"
-                        android:textSize="16sp"
-                        tools:text="92%" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                app:cardBackgroundColor="@color/brand_surface"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/brand_border"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="20dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/label_explanation"
-                        android:textColor="@color/brand_muted"
-                        android:textSize="13sp"
+                        android:layout_marginTop="22dp"
+                        android:text="@string/why_this_is_misleading"
+                        android:textColor="@color/brand_primary"
+                        android:textSize="18sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/explanationTextView"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:lineSpacingExtra="4dp"
+                        android:layout_marginTop="12dp"
+                        android:lineSpacingExtra="5dp"
                         android:textColor="@color/brand_text"
-                        android:textSize="16sp"
-                        tools:text="The backend compared the transcript against the available evidence and found conflicting claims." />
+                        android:textSize="14sp"
+                        tools:text="• Lemon water alone does not melt fat.\n\n• Weight loss depends on overall diet and exercise." />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:text="@string/detail_sources"
+                        android:textColor="@color/brand_muted"
+                        android:textSize="12sp" />
+
+                    <LinearLayout
+                        android:id="@+id/sourcesContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/sourceOneTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_chip_primary"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="6dp"
+                            android:textColor="@color/brand_text"
+                            android:textSize="12sp"
+                            tools:text="1 WebMD" />
+
+                        <TextView
+                            android:id="@+id/sourceTwoTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/bg_chip_primary"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="6dp"
+                            android:textColor="@color/brand_text"
+                            android:textSize="12sp"
+                            tools:text="2 Healthline" />
+
+                        <TextView
+                            android:id="@+id/sourceThreeTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/bg_chip_primary"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="6dp"
+                            android:textColor="@color/brand_text"
+                            android:textSize="12sp"
+                            tools:text="+2" />
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/askAiButton"
+                        style="@style/Widget.Material3.Button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:text="@string/detail_ai_button"
+                        app:backgroundTint="@color/brand_primary"
+                        app:icon="@drawable/ic_sparkle" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="22dp"
+                        android:text="@string/detail_feedback_caption"
+                        android:textColor="@color/brand_muted"
+                        android:textSize="12sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/thumbsUpButton"
+                            style="@style/Widget.Material3.Button.TextButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/feedback_up"
+                            app:icon="@drawable/ic_thumb_up"
+                            app:iconTint="@color/brand_muted" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/thumbsDownButton"
+                            style="@style/Widget.Material3.Button.TextButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/feedback_down"
+                            app:icon="@drawable/ic_thumb_down"
+                            app:iconTint="@color/brand_muted" />
+                    </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
-    <LinearLayout
-        android:id="@+id/feedbackContainer"
-        android:layout_width="0dp"
+    <ProgressBar
+        android:id="@+id/detailProgressBar"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/detailErrorTextView"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/brand_surface"
-        android:elevation="6dp"
-        android:orientation="vertical"
-        android:padding="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:paddingHorizontal="24dp"
+        android:textColor="@color/error"
+        android:textSize="15sp"
+        android:visibility="gone"
+        tools:text="Unable to load the fact-check result." />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/detail_feedback_caption"
-            android:textColor="@color/brand_muted"
-            android:textSize="13sp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/thumbsUpButton"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/feedback_up"
-                app:icon="@drawable/ic_thumb_up"
-                app:strokeColor="@color/brand_border" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/thumbsDownButton"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_weight="1"
-                android:text="@string/feedback_down"
-                app:icon="@drawable/ic_thumb_down"
-                app:strokeColor="@color/brand_border" />
-        </LinearLayout>
-    </LinearLayout>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>

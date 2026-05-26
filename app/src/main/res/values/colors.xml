@@ -1,19 +1,37 @@
 <resources>
-    <color name="brand_primary">#1E3A8A</color>
-    <color name="brand_primary_dark">#172554</color>
-    <color name="brand_secondary">#3B82F6</color>
-    <color name="brand_accent">#F59E0B</color>
-    <color name="brand_text">#111827</color>
-    <color name="brand_muted">#6B7280</color>
-    <color name="brand_background">#F9FAFB</color>
+    <!-- Update these to retheme the app while preserving the mockup structure. -->
+    <color name="theme_primary">#655BFF</color>
+    <color name="theme_secondary">#FF705B</color>
+
+    <color name="brand_primary">@color/theme_primary</color>
+    <color name="brand_primary_dark">#4634D4</color>
+    <color name="brand_secondary">@color/theme_secondary</color>
+    <color name="brand_accent">#8E7BFF</color>
+    <color name="brand_text">#171B2C</color>
+    <color name="brand_muted">#8B8FA5</color>
+    <color name="brand_background">#F7F8FE</color>
     <color name="brand_surface">#FFFFFF</color>
-    <color name="brand_border">#E5E7EB</color>
-    <color name="brand_divider">#EEF2F7</color>
-    <color name="brand_primary_soft">#DBEAFE</color>
-    <color name="brand_accent_soft">#FEF3C7</color>
-    <color name="success">#059669</color>
-    <color name="warning">#D97706</color>
-    <color name="error">#DC2626</color>
+    <color name="brand_border">#ECECF5</color>
+    <color name="brand_divider">#F0F1F8</color>
+    <color name="brand_primary_soft">#F0EEFF</color>
+    <color name="brand_secondary_soft">#FFF0EC</color>
+    <color name="brand_overlay">#14655BFF</color>
+    <color name="brand_drawer_surface">#FBFBFF</color>
+    <color name="brand_dark_surface">#141739</color>
+    <color name="brand_dark_surface_alt">#1E2354</color>
+    <color name="brand_dark_border">#2C3166</color>
+    <color name="brand_status_true">#32C665</color>
+    <color name="brand_status_false">#FF5A62</color>
+    <color name="brand_status_misleading">#FFB62A</color>
+    <color name="brand_status_unverified">#B9BFCE</color>
+    <color name="brand_status_true_soft">#E9FAEF</color>
+    <color name="brand_status_false_soft">#FFF0F1</color>
+    <color name="brand_status_misleading_soft">#FFF6E2</color>
+    <color name="brand_status_unverified_soft">#F1F3F7</color>
+    <color name="brand_search_background">#F3F4FA</color>
+    <color name="success">@color/brand_status_true</color>
+    <color name="warning">@color/brand_status_misleading</color>
+    <color name="error">@color/brand_status_false</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
 </resources>

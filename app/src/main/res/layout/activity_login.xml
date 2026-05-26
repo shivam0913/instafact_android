@@ -2,69 +2,265 @@
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootScrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_screen"
+    android:background="@color/brand_surface"
     android:fillViewport="true"
     tools:context=".ui.login.LoginActivity">
 
     <LinearLayout
+        android:id="@+id/contentRoot"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:paddingHorizontal="22dp"
+        android:paddingBottom="24dp">
 
-        <com.google.android.material.card.MaterialCardView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            app:cardBackgroundColor="@android:color/transparent"
-            app:cardCornerRadius="28dp"
-            app:cardElevation="0dp">
+            android:gravity="end"
+            android:paddingTop="8dp">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_user_outline" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/login_welcome_prefix"
+            android:textColor="@color/brand_primary"
+            android:textSize="18sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/login_title"
+            android:textColor="@color/brand_primary"
+            android:textSize="38sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/titleTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/login_brand_name"
+            android:textColor="@color/brand_primary"
+            android:textSize="38sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/login_subtitle"
+            android:textColor="@color/brand_muted"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/stepTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:text="@string/login_form_title"
+            android:textColor="@color/brand_text"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/formTitleTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/login_form_title"
+            android:textColor="@color/brand_text"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/formSubtitleTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/login_form_subtitle"
+            android:textColor="@color/brand_muted"
+            android:textSize="13sp"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/phoneInputLayout"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/bg_search_bar"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="14dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_light_icon_circle"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="8dp"
+                android:text="🇮🇳 +91"
+                android:textColor="@color/brand_text"
+                android:textSize="13sp" />
+
+            <EditText
+                android:id="@+id/phoneEditText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:background="@null"
+                android:hint="98765 43210"
+                android:inputType="phone"
+                android:maxLines="1"
+                android:textColor="@color/brand_text"
+                android:textColorHint="@color/brand_muted"
+                tools:text="98765 43210" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/helperTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:textColor="@color/success"
+            android:textSize="14sp"
+            android:visibility="gone"
+            tools:text="OTP sent successfully." />
+
+        <TextView
+            android:id="@+id/errorTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textColor="@color/error"
+            android:textSize="14sp"
+            android:visibility="gone"
+            tools:text="Invalid OTP." />
+
+        <LinearLayout
+            android:id="@+id/otpContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/otpInputLayout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/otp_hint"
+                app:boxBackgroundColor="@color/brand_surface"
+                app:boxCornerRadiusBottomEnd="18dp"
+                app:boxCornerRadiusBottomStart="18dp"
+                app:boxCornerRadiusTopEnd="18dp"
+                app:boxCornerRadiusTopStart="18dp"
+                app:boxStrokeColor="@color/brand_border">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/otpEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:digits="0123456789"
+                    android:inputType="numberPassword"
+                    android:maxLength="6"
+                    android:maxLines="1"
+                    android:textColor="@color/brand_text" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
+                android:id="@+id/resendCountdownTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:textColor="@color/brand_muted"
+                android:textSize="13sp"
+                android:visibility="gone"
+                tools:text="You can resend in 01:56" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_hero_panel"
-                android:orientation="vertical"
-                android:padding="24dp">
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-                <TextView
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/resendOtpButton"
+                    style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_chip_surface"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="8dp"
-                    android:text="@string/app_name"
-                    android:textColor="@color/white"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
+                    android:text="@string/resend_otp"
+                    android:textColor="@color/brand_primary" />
 
-                <TextView
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/changeNumberButton"
+                    style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
-                    android:text="@string/login_title"
-                    android:textColor="@color/white"
-                    android:textSize="30sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="@string/login_subtitle"
-                    android:textColor="#E5E7EB"
-                    android:textSize="15sp" />
+                    android:text="@string/change_number"
+                    android:textColor="@color/brand_muted" />
             </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
 
-        <com.google.android.material.card.MaterialCardView
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/requestOtpButton"
+            style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
+            android:text="@string/send_otp"
+            app:backgroundTint="@color/brand_primary" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/verifyOtpButton"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/verify_otp"
+            android:visibility="gone"
+            app:backgroundTint="@color/brand_primary" />
+
+        <ProgressBar
+            android:id="@+id/loginProgressBar"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="14dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:gravity="center"
+            android:text="@string/or_divider"
+            android:textColor="@color/brand_muted"
+            android:textSize="14sp" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/instagramLoginButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
             app:cardBackgroundColor="@color/brand_surface"
-            app:cardCornerRadius="24dp"
+            app:cardCornerRadius="18dp"
             app:cardElevation="0dp"
             app:strokeColor="@color/brand_border"
             app:strokeWidth="1dp">
@@ -72,203 +268,35 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="22dp">
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:padding="14dp">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_instagram" />
 
                 <TextView
-                    android:id="@+id/stepTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_chip_primary"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="8dp"
-                    android:text="@string/login_step_phone"
-                    android:textColor="@color/brand_primary"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/formTitleTextView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="@string/login_form_title"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/continue_with_instagram"
                     android:textColor="@color/brand_text"
-                    android:textSize="24sp"
+                    android:textSize="14sp"
                     android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/formSubtitleTextView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/login_form_subtitle"
-                    android:textColor="@color/brand_muted"
-                    android:textSize="15sp" />
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/phoneInputLayout"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:hint="@string/phone_hint"
-                    app:boxBackgroundColor="@color/brand_surface"
-                    app:boxCornerRadiusBottomEnd="18dp"
-                    app:boxCornerRadiusBottomStart="18dp"
-                    app:boxCornerRadiusTopEnd="18dp"
-                    app:boxCornerRadiusTopStart="18dp"
-                    app:boxStrokeColor="@color/brand_border"
-                    app:hintTextColor="@color/brand_muted"
-                    app:startIconDrawable="@android:drawable/ic_menu_call"
-                    app:startIconTint="@color/brand_secondary">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/phoneEditText"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:importantForAutofill="yes"
-                        android:inputType="phone"
-                        android:maxLines="1"
-                        android:textColor="@color/brand_text"
-                        android:textColorHint="@color/brand_muted"
-                        tools:text="+91 9876543210" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/phone_prefix_hint"
-                    android:textColor="@color/brand_muted"
-                    android:textSize="13sp" />
-
-                <TextView
-                    android:id="@+id/helperTextView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:textColor="@color/success"
-                    android:textSize="14sp"
-                    android:visibility="gone"
-                    tools:text="OTP sent successfully." />
-
-                <TextView
-                    android:id="@+id/errorTextView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:textColor="@color/error"
-                    android:textSize="14sp"
-                    android:visibility="gone"
-                    tools:text="Invalid OTP." />
-
-                <LinearLayout
-                    android:id="@+id/otpContainer"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
-                    android:orientation="vertical"
-                    android:visibility="gone">
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/otpInputLayout"
-                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="@string/otp_hint"
-                        app:boxBackgroundColor="@color/brand_surface"
-                        app:boxCornerRadiusBottomEnd="18dp"
-                        app:boxCornerRadiusBottomStart="18dp"
-                        app:boxCornerRadiusTopEnd="18dp"
-                        app:boxCornerRadiusTopStart="18dp"
-                        app:boxStrokeColor="@color/brand_border"
-                        app:hintTextColor="@color/brand_muted"
-                        app:startIconDrawable="@android:drawable/ic_lock_lock"
-                        app:startIconTint="@color/brand_accent">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/otpEditText"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:digits="0123456789"
-                            android:inputType="numberPassword"
-                            android:maxLength="6"
-                            android:maxLines="1"
-                            android:textColor="@color/brand_text"
-                            tools:text="1234" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <TextView
-                        android:id="@+id/resendCountdownTextView"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:textColor="@color/brand_muted"
-                        android:textSize="13sp"
-                        android:visibility="gone"
-                        tools:text="You can resend in 01:56" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/resendOtpButton"
-                            style="@style/Widget.Material3.Button.TextButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/resend_otp"
-                            android:textColor="@color/brand_secondary" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/changeNumberButton"
-                            style="@style/Widget.Material3.Button.TextButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="4dp"
-                            android:text="@string/change_number"
-                            android:textColor="@color/brand_muted" />
-                    </LinearLayout>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/verifyOtpButton"
-                        style="@style/Widget.Material3.Button"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="@string/verify_otp"
-                        app:backgroundTint="@color/brand_primary" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/requestOtpButton"
-                        style="@style/Widget.Material3.Button"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/send_otp"
-                        app:backgroundTint="@color/brand_primary" />
-
-                    <ProgressBar
-                        android:id="@+id/loginProgressBar"
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
-                        android:layout_marginStart="14dp"
-                        android:visibility="gone" />
-                </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="26dp"
+            android:gravity="center"
+            android:text="@string/login_footer"
+            android:textColor="@color/brand_muted"
+            android:textSize="13sp" />
     </LinearLayout>
 
 </androidx.core.widget.NestedScrollView>

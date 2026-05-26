@@ -2,14 +2,20 @@
     <style name="Theme.Instafact" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">@color/brand_primary</item>
         <item name="colorOnPrimary">@color/white</item>
-        <item name="colorPrimaryContainer">@color/brand_primary_dark</item>
+        <item name="colorPrimaryContainer">@color/brand_primary_soft</item>
+        <item name="colorOnPrimaryContainer">@color/brand_primary</item>
         <item name="colorSecondary">@color/brand_secondary</item>
+        <item name="colorSecondaryContainer">@color/brand_secondary_soft</item>
+        <item name="colorOnSecondaryContainer">@color/brand_text</item>
         <item name="colorTertiary">@color/brand_accent</item>
         <item name="colorSurface">@color/brand_surface</item>
-        <item name="android:colorBackground">@color/brand_background</item>
+        <item name="colorSurfaceVariant">@color/brand_search_background</item>
+        <item name="colorOutline">@color/brand_border</item>
         <item name="colorOnSurface">@color/brand_text</item>
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+        <item name="android:colorBackground">@color/brand_background</item>
         <item name="android:windowBackground">@color/brand_background</item>
+        <item name="android:statusBarColor">@color/brand_surface</item>
+        <item name="android:navigationBarColor">@color/brand_surface</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
     </style>
 </resources>

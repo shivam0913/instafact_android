@@ -5,6 +5,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.instafact.app.data.repository.AuthRepository
+import com.instafact.app.data.repository.ProfileRepository
+import com.instafact.app.data.model.UserProfileResponse
+import com.instafact.app.data.model.UserProfileUpdateRequest
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -31,6 +34,7 @@ data class LoginUiModel(
 
 class LoginViewModel(
     private val authRepository: AuthRepository,
+    private val profileRepository: ProfileRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableLiveData(LoginUiModel())
@@ -38,6 +42,8 @@ class LoginViewModel(
 
     private val _loginComplete = MutableLiveData(false)
     val loginComplete: LiveData<Boolean> = _loginComplete
+    private val _profileCompletionRequired = MutableLiveData<UserProfileResponse?>(null)
+    val profileCompletionRequired: LiveData<UserProfileResponse?> = _profileCompletionRequired
 
     private var countdownJob: Job? = null
 
@@ -135,11 +141,7 @@ class LoginViewModel(
         viewModelScope.launch {
             authRepository.verifyOtp(phoneNumber, otp)
                 .onSuccess {
-                    _uiState.value = _uiState.value?.copy(
-                        isLoading = false,
-                        errorMessage = null,
-                    )
-                    _loginComplete.value = true
+                    fetchProfileAfterLogin()
                 }
                 .onFailure { error ->
                     _uiState.value = _uiState.value?.copy(
@@ -166,6 +168,47 @@ class LoginViewModel(
         _loginComplete.value = false
     }
 
+    fun completeProfile(
+        fullName: String,
+        gender: String,
+        ageGroup: String,
+    ) {
+        _uiState.value = _uiState.value?.copy(
+            isLoading = true,
+            errorMessage = null,
+        )
+        viewModelScope.launch {
+            profileRepository.updateProfile(
+                UserProfileUpdateRequest(
+                    name = fullName.trim(),
+                    gender = gender,
+                    ageGroup = ageGroup,
+                ),
+            ).onSuccess {
+                _uiState.value = _uiState.value?.copy(
+                    isLoading = false,
+                    errorMessage = null,
+                )
+                _profileCompletionRequired.value = null
+                _loginComplete.value = true
+            }.onFailure { error ->
+                _uiState.value = _uiState.value?.copy(
+                    isLoading = false,
+                    errorMessage = error.message.orEmpty(),
+                )
+            }
+        }
+    }
+
+    fun skipProfileCompletion() {
+        _profileCompletionRequired.value = null
+        _loginComplete.value = true
+    }
+
+    fun markProfileCompletionHandled() {
+        _profileCompletionRequired.value = null
+    }
+
     private fun startOtpStep(phoneNumber: String, message: String) {
         _uiState.value = _uiState.value?.copy(
             step = LoginStep.OTP,
@@ -176,6 +219,34 @@ class LoginViewModel(
             resendSecondsRemaining = RESEND_COOLDOWN_SECONDS,
         )
         startCountdown(RESEND_COOLDOWN_SECONDS)
+    }
+
+    private fun fetchProfileAfterLogin() {
+        _uiState.value = _uiState.value?.copy(
+            isLoading = true,
+            errorMessage = null,
+        )
+        viewModelScope.launch {
+            profileRepository.getProfile()
+                .onSuccess { profile ->
+                    _uiState.value = _uiState.value?.copy(
+                        isLoading = false,
+                        errorMessage = null,
+                    )
+                    if (profile.name.isNullOrBlank() || profile.gender.isNullOrBlank()) {
+                        _profileCompletionRequired.value = profile
+                    } else {
+                        _loginComplete.value = true
+                    }
+                }
+                .onFailure {
+                    _uiState.value = _uiState.value?.copy(
+                        isLoading = false,
+                        errorMessage = null,
+                    )
+                    _loginComplete.value = true
+                }
+        }
     }
 
     private fun startCountdown(totalSeconds: Int) {

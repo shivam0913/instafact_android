@@ -3,33 +3,40 @@ package com.instafact.app.ui.home
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.core.view.GravityCompat
 import com.instafact.app.InstafactApplication
 import com.instafact.app.R
 import com.instafact.app.databinding.ActivityHomeBinding
-import com.instafact.app.ui.detail.DetailActivity
+import com.instafact.app.ui.explore.ExploreFragment
 import com.instafact.app.ui.login.LoginActivity
+import com.instafact.app.ui.profile.ProfileFragment
+import com.instafact.app.ui.splash.SplashActivity
 import com.instafact.app.utils.IntentExtras
 import com.instafact.app.utils.UiState
 import com.instafact.app.utils.UrlValidator
 import com.instafact.app.utils.ViewModelFactory
+import com.instafact.app.utils.applySystemBarInsets
+import com.instafact.app.utils.configureSystemBars
 import com.instafact.app.viewmodel.HomeViewModel
 
 class HomeActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityHomeBinding
-    private lateinit var submissionAdapter: SubmissionAdapter
 
     private val viewModel: HomeViewModel by viewModels {
         ViewModelFactory((application as InstafactApplication).appContainer)
     }
+
+    private var selectedTabId: Int = R.id.menu_home
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,14 +55,21 @@ class HomeActivity : AppCompatActivity() {
 
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        configureSystemBars(
+            statusBarColorRes = R.color.brand_surface,
+            navigationBarColorRes = R.color.brand_background,
+            lightStatusBar = true,
+        )
+        binding.contentRoot.applySystemBarInsets(applyTop = true)
+        binding.bottomNavigationView.applySystemBarInsets(applyBottom = true)
 
-        setupList()
-        setupActions()
+        setupDrawer()
+        setupBottomNavigation()
         observeViewModel()
         maybeRequestNotificationPermission()
 
         if (savedInstanceState == null) {
-            viewModel.loadHistory()
+            switchTab(R.id.menu_home)
             handleIncomingSharedUrl(intent)
         }
     }
@@ -64,83 +78,60 @@ class HomeActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         handleIncomingSharedUrl(intent)
-        viewModel.loadHistory()
+        refreshCurrentTab()
     }
 
-    private fun setupList() {
-        submissionAdapter = SubmissionAdapter { item ->
-            startActivity(
-                Intent(this, DetailActivity::class.java).apply {
-                    putExtra(IntentExtras.EXTRA_QUERY_ID, item.queryId)
-                },
-            )
-        }
+    fun openDrawer() {
+        binding.drawerLayout.openDrawer(GravityCompat.START)
+    }
 
-        binding.historyRecyclerView.apply {
-            layoutManager = LinearLayoutManager(this@HomeActivity)
-            adapter = submissionAdapter
+    fun navigateToProfileTab() {
+        binding.bottomNavigationView.selectedItemId = R.id.menu_profile
+    }
+
+    private fun setupDrawer() {
+        binding.navigationView.setNavigationItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.menu_home, R.id.menu_explore, R.id.menu_profile -> {
+                    binding.bottomNavigationView.selectedItemId = item.itemId
+                }
+
+                R.id.menu_connect_instagram -> openInstagram()
+                R.id.menu_share_app -> shareApp()
+                R.id.menu_logout -> logout()
+            }
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
+            true
         }
     }
 
-    private fun setupActions() {
-        binding.swipeRefreshLayout.setOnRefreshListener {
-            viewModel.loadHistory()
-        }
-        binding.retryButton.setOnClickListener {
-            viewModel.loadHistory()
+    private fun setupBottomNavigation() {
+        binding.bottomNavigationView.setOnItemSelectedListener { item ->
+            switchTab(item.itemId)
+            true
         }
     }
 
     private fun observeViewModel() {
-        viewModel.historyState.observe(this) { state ->
-            binding.swipeRefreshLayout.isRefreshing = false
-            when (state) {
-                UiState.Idle -> Unit
-                UiState.Loading -> {
-                    if (submissionAdapter.itemCount == 0) {
-                        binding.historyProgressBar.visibility = android.view.View.VISIBLE
-                    }
-                    binding.emptyStateContainer.visibility = android.view.View.GONE
-                    binding.errorStateContainer.visibility = android.view.View.GONE
-                }
-                is UiState.Success -> {
-                    binding.historyProgressBar.visibility = android.view.View.GONE
-                    binding.errorStateContainer.visibility = android.view.View.GONE
-                    val items = state.data
-                    submissionAdapter.submitList(items)
-                    binding.emptyStateContainer.visibility =
-                        if (items.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
-                }
-                is UiState.Error -> {
-                    binding.historyProgressBar.visibility = android.view.View.GONE
-                    if (submissionAdapter.itemCount == 0) {
-                        binding.errorStateContainer.visibility = android.view.View.VISIBLE
-                        binding.emptyStateContainer.visibility = android.view.View.GONE
-                        binding.errorTextView.text = state.message
-                    } else {
-                        Toast.makeText(this, state.message, Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-        }
-
         viewModel.submitState.observe(this) { state ->
             when (state) {
-                UiState.Idle -> {
-                    binding.shareStatusCard.visibility = android.view.View.GONE
-                }
+                UiState.Idle -> binding.shareStatusCard.visibility = View.GONE
                 UiState.Loading -> {
-                    binding.shareStatusCard.visibility = android.view.View.VISIBLE
+                    binding.shareStatusCard.visibility = View.VISIBLE
                     binding.shareStatusTextView.text = getString(R.string.share_processing)
                 }
+
                 is UiState.Success -> {
-                    binding.shareStatusCard.visibility = android.view.View.GONE
+                    binding.shareStatusCard.visibility = View.GONE
                     Toast.makeText(this, getString(R.string.submission_success), Toast.LENGTH_SHORT).show()
+                    binding.bottomNavigationView.selectedItemId = R.id.menu_home
                     viewModel.loadHistory()
+                    viewModel.loadExplore()
                     viewModel.resetSubmitState()
                 }
+
                 is UiState.Error -> {
-                    binding.shareStatusCard.visibility = android.view.View.GONE
+                    binding.shareStatusCard.visibility = View.GONE
                     Toast.makeText(this, state.message, Toast.LENGTH_LONG).show()
                     viewModel.resetSubmitState()
                 }
@@ -155,6 +146,57 @@ class HomeActivity : AppCompatActivity() {
             return
         }
         viewModel.submitSharedUrl(sharedUrl)
+    }
+
+    private fun switchTab(itemId: Int) {
+        selectedTabId = itemId
+        binding.navigationView.setCheckedItem(itemId)
+
+        val fragment = when (itemId) {
+            R.id.menu_explore -> ExploreFragment()
+            R.id.menu_profile -> ProfileFragment()
+            else -> HomeFeedFragment()
+        }
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, fragment)
+            .commit()
+    }
+
+    private fun refreshCurrentTab() {
+        when (selectedTabId) {
+            R.id.menu_explore -> viewModel.loadExplore()
+            else -> viewModel.loadHistory()
+        }
+    }
+
+    private fun openInstagram() {
+        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.instagram.com/")))
+    }
+
+    private fun shareApp() {
+        startActivity(
+            Intent.createChooser(
+                Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(
+                        Intent.EXTRA_TEXT,
+                        getString(R.string.share_friends_message, getString(R.string.app_download_link)),
+                    )
+                },
+                getString(R.string.share_with_friends),
+            ),
+        )
+    }
+
+    private fun logout() {
+        (application as InstafactApplication).appContainer.preferenceManager.clearUserSession()
+        Toast.makeText(this, getString(R.string.logged_out), Toast.LENGTH_SHORT).show()
+        startActivity(
+            Intent(this, SplashActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            },
+        )
+        finish()
     }
 
     private fun getIncomingSharedUrl(incomingIntent: Intent?): String? {
