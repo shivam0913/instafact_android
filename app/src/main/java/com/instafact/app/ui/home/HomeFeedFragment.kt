@@ -21,6 +21,7 @@ import com.instafact.app.utils.UiState
 import com.instafact.app.utils.UrlValidator
 import com.instafact.app.utils.ViewModelFactory
 import com.instafact.app.viewmodel.HomeViewModel
+import com.instafact.app.viewmodel.ProfileViewModel
 import java.util.Calendar
 
 class HomeFeedFragment : Fragment() {
@@ -29,6 +30,9 @@ class HomeFeedFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: HomeViewModel by activityViewModels {
+        ViewModelFactory((requireActivity().application as InstafactApplication).appContainer)
+    }
+    private val profileViewModel: ProfileViewModel by activityViewModels {
         ViewModelFactory((requireActivity().application as InstafactApplication).appContainer)
     }
 
@@ -86,6 +90,9 @@ class HomeFeedFragment : Fragment() {
         if (viewModel.historyState.value == UiState.Idle) {
             viewModel.loadHistory()
         }
+        if (profileViewModel.profileState.value == UiState.Idle) {
+            profileViewModel.loadProfile()
+        }
     }
 
     private fun observeState() {
@@ -106,10 +113,7 @@ class HomeFeedFragment : Fragment() {
                     binding.errorStateContainer.visibility = View.GONE
                     allItems = state.data
                     updateGreetingForLocalTime()
-                    binding.greetingNameTextView.text = viewModel.getPhoneNumber()
-                        ?.takeLast(4)
-                        ?.let { getString(R.string.home_user_name) + " " + getString(R.string.home_greeting_wave) }
-                        ?: getString(R.string.home_user_name) + " " + getString(R.string.home_greeting_wave)
+                    renderGreetingName()
                     renderItems(allItems)
                 }
 
@@ -123,6 +127,12 @@ class HomeFeedFragment : Fragment() {
                         Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
                     }
                 }
+            }
+        }
+
+        profileViewModel.profileState.observe(viewLifecycleOwner) { state ->
+            if (state is UiState.Success) {
+                renderGreetingName(state.data.name)
             }
         }
 
@@ -161,6 +171,14 @@ class HomeFeedFragment : Fragment() {
             else -> R.string.home_greeting_night
         }
         binding.greetingTextView.setText(greetingRes)
+    }
+
+    private fun renderGreetingName(profileName: String? = null) {
+        val displayName = profileName?.trim()?.takeIf { it.isNotEmpty() }
+            ?: viewModel.getPhoneNumber()?.takeLast(4)?.let { "User $it" }
+            ?: getString(R.string.profile_display_name)
+        binding.greetingNameTextView.text = "$displayName ${getString(R.string.home_greeting_wave)}"
+        binding.avatarButton.text = displayName.firstOrNull()?.uppercase() ?: "I"
     }
 
     private fun submitPastedUrl() {
