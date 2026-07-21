@@ -16,8 +16,14 @@ import com.instafact.app.data.model.HistoryItemResponse
 import com.instafact.app.data.model.SubmitRequest
 import com.instafact.app.data.model.SubmitResponse
 import com.instafact.app.utils.ApiErrorParser
+import com.instafact.app.utils.ClientVideoMetadata
 import com.instafact.app.utils.PreferenceManager
+import com.instafact.app.utils.SessionDebugLogger
+import com.instafact.app.utils.VideoMetadataFetcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 
 class SubmissionRepository(
@@ -28,7 +34,7 @@ class SubmissionRepository(
 
     suspend fun getHistory(): Result<List<HistoryItemResponse>> = withContext(Dispatchers.IO) {
         runCatching {
-            apiService.getHistory(requireUserId())
+            apiService.getHistory(requireUserId()).map { applyCachedMetadata(it) }
         }.fold(
             onSuccess = { Result.success(it) },
             onFailure = { Result.failure(Exception(ApiErrorParser.getMessage(context, it), it)) },
@@ -37,7 +43,7 @@ class SubmissionRepository(
 
     suspend fun getDetail(queryId: Int): Result<DetailResponse> = withContext(Dispatchers.IO) {
         runCatching {
-            apiService.getDetail(queryId)
+            applyCachedMetadata(apiService.getDetail(queryId))
         }.fold(
             onSuccess = { Result.success(it) },
             onFailure = { Result.failure(Exception(ApiErrorParser.getMessage(context, it), it)) },
@@ -46,7 +52,44 @@ class SubmissionRepository(
 
     suspend fun getExplore(limit: Int = 20): Result<List<ExploreItemResponse>> = withContext(Dispatchers.IO) {
         runCatching {
-            apiService.getExplore(limit)
+            apiService.getExplore(limit).map { applyCachedMetadata(it) }
+        }.fold(
+            onSuccess = { Result.success(it) },
+            onFailure = { Result.failure(Exception(ApiErrorParser.getMessage(context, it), it)) },
+        )
+    }
+
+    suspend fun backfillHistoryMetadata(items: List<HistoryItemResponse>): Result<List<HistoryItemResponse>> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                coroutineScope {
+                    items.map { item ->
+                        async { backfillMetadata(item) }
+                    }.awaitAll()
+                }
+            }.fold(
+                onSuccess = { Result.success(it) },
+                onFailure = { Result.failure(Exception(ApiErrorParser.getMessage(context, it), it)) },
+            )
+        }
+
+    suspend fun backfillExploreMetadata(items: List<ExploreItemResponse>): Result<List<ExploreItemResponse>> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                coroutineScope {
+                    items.map { item ->
+                        async { backfillMetadata(item) }
+                    }.awaitAll()
+                }
+            }.fold(
+                onSuccess = { Result.success(it) },
+                onFailure = { Result.failure(Exception(ApiErrorParser.getMessage(context, it), it)) },
+            )
+        }
+
+    suspend fun backfillDetailMetadata(detail: DetailResponse): Result<DetailResponse> = withContext(Dispatchers.IO) {
+        runCatching {
+            backfillMetadata(detail)
         }.fold(
             onSuccess = { Result.success(it) },
             onFailure = { Result.failure(Exception(ApiErrorParser.getMessage(context, it), it)) },
@@ -85,10 +128,16 @@ class SubmissionRepository(
 
     suspend fun submitVideo(videoUrl: String): Result<SubmitResponse> = withContext(Dispatchers.IO) {
         runCatching {
+            val metadata = VideoMetadataFetcher.fetch(videoUrl)
+            SessionDebugLogger.logMetadataFetchResult("SubmissionRepository.submitVideo", videoUrl, metadata)
+            metadata?.let { preferenceManager.saveVideoMetadata(videoUrl, it) }
             apiService.submitVideo(
                 SubmitRequest(
                     userId = requireUserId(),
                     videoUrl = videoUrl,
+                    title = metadata?.title,
+                    channelName = metadata?.channelName,
+                    thumbnailUrl = metadata?.thumbnailUrl,
                 ),
             )
         }.fold(
@@ -135,8 +184,85 @@ class SubmissionRepository(
 
     fun getPhoneNumber(): String? = preferenceManager.getPhoneNumber()
 
+    fun getProfileName(): String? = preferenceManager.getProfileName()
+
+    fun getProfileImageUrl(): String? = preferenceManager.getProfileImageUrl()
+
+    fun getCachedVideoMetadata(videoUrl: String): ClientVideoMetadata? = preferenceManager.getVideoMetadata(videoUrl)
+
     private fun requireUserId(): Int {
         return preferenceManager.getUserId()
             ?: throw IllegalStateException(context.getString(R.string.unknown_error))
+    }
+
+    private fun applyCachedMetadata(item: HistoryItemResponse): HistoryItemResponse {
+        val metadata = preferenceManager.getVideoMetadata(item.videoUrl) ?: return item
+        return item.copy(
+            title = item.title ?: metadata.title,
+            channelName = item.channelName ?: metadata.channelName ?: metadata.creatorId,
+            thumbnailUrl = item.thumbnailUrl ?: metadata.thumbnailUrl,
+        )
+    }
+
+    private fun applyCachedMetadata(item: ExploreItemResponse): ExploreItemResponse {
+        val metadata = preferenceManager.getVideoMetadata(item.videoUrl) ?: return item
+        return item.copy(
+            title = item.title ?: metadata.title,
+            channelName = item.channelName ?: metadata.channelName ?: metadata.creatorId,
+            thumbnailUrl = item.thumbnailUrl ?: metadata.thumbnailUrl,
+        )
+    }
+
+    private fun applyCachedMetadata(item: DetailResponse): DetailResponse {
+        val metadata = preferenceManager.getVideoMetadata(item.videoUrl) ?: return item
+        return item.copy(
+            title = item.title ?: metadata.title,
+            channelName = item.channelName ?: metadata.channelName ?: metadata.creatorId,
+            thumbnailUrl = item.thumbnailUrl ?: metadata.thumbnailUrl,
+        )
+    }
+
+    private fun needsMetadata(title: String?, channelName: String?, thumbnailUrl: String?): Boolean {
+        return title.isNullOrBlank() || channelName.isNullOrBlank() || thumbnailUrl.isNullOrBlank()
+    }
+
+    private fun mergedMetadata(videoUrl: String): ClientVideoMetadata? {
+        val cachedMetadata = preferenceManager.getVideoMetadata(videoUrl)
+        if (cachedMetadata != null) {
+            return cachedMetadata
+        }
+        val fetchedMetadata = VideoMetadataFetcher.fetch(videoUrl) ?: return null
+        preferenceManager.saveVideoMetadata(videoUrl, fetchedMetadata)
+        return fetchedMetadata
+    }
+
+    private fun backfillMetadata(item: HistoryItemResponse): HistoryItemResponse {
+        if (!needsMetadata(item.title, item.channelName, item.thumbnailUrl)) return item
+        val metadata = mergedMetadata(item.videoUrl) ?: return item
+        return item.copy(
+            title = item.title ?: metadata.title,
+            channelName = item.channelName ?: metadata.channelName ?: metadata.creatorId,
+            thumbnailUrl = item.thumbnailUrl ?: metadata.thumbnailUrl,
+        )
+    }
+
+    private fun backfillMetadata(item: ExploreItemResponse): ExploreItemResponse {
+        if (!needsMetadata(item.title, item.channelName, item.thumbnailUrl)) return item
+        val metadata = mergedMetadata(item.videoUrl) ?: return item
+        return item.copy(
+            title = item.title ?: metadata.title,
+            channelName = item.channelName ?: metadata.channelName ?: metadata.creatorId,
+            thumbnailUrl = item.thumbnailUrl ?: metadata.thumbnailUrl,
+        )
+    }
+
+    private fun backfillMetadata(item: DetailResponse): DetailResponse {
+        if (!needsMetadata(item.title, item.channelName, item.thumbnailUrl)) return item
+        val metadata = mergedMetadata(item.videoUrl) ?: return item
+        return item.copy(
+            title = item.title ?: metadata.title,
+            channelName = item.channelName ?: metadata.channelName ?: metadata.creatorId,
+            thumbnailUrl = item.thumbnailUrl ?: metadata.thumbnailUrl,
+        )
     }
 }

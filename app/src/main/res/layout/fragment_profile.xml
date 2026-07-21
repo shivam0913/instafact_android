@@ -310,24 +310,6 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:text="@string/profile_user_id"
-                        android:textColor="@color/brand_muted"
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:id="@+id/userIdValueTextView"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:textColor="@color/brand_text"
-                        android:textSize="15sp"
-                        android:textStyle="bold"
-                        tools:text="42" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
                         android:text="@string/profile_phone"
                         android:textColor="@color/brand_muted"
                         android:textSize="12sp" />
@@ -359,24 +341,6 @@
                         android:textSize="15sp"
                         android:textStyle="bold"
                         tools:text="AB12CD34" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:text="@string/profile_dp_url"
-                        android:textColor="@color/brand_muted"
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:id="@+id/profileImageUrlValueTextView"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:maxLines="2"
-                        android:textColor="@color/brand_primary"
-                        android:textSize="14sp"
-                        tools:text="https://cdn.instafact.ai/profile-images/user-42/avatar.jpg" />
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -398,159 +362,12 @@
                 android:paddingVertical="8dp">
 
                 <LinearLayout
-                    android:id="@+id/connectInstagramButton"
+                    android:id="@+id/privacyButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="18dp"
-                    android:paddingVertical="14dp">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_instagram" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/connect_instagram"
-                            android:textColor="@color/brand_text"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/connect_instagram_caption"
-                            android:textColor="@color/brand_muted"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-
-                    <ImageView
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_chevron_right" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="@color/brand_divider" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="18dp"
-                    android:paddingVertical="14dp">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_notification_outline" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/notification_settings"
-                            android:textColor="@color/brand_text"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/notification_settings_caption"
-                            android:textColor="@color/brand_muted"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-
-                    <ImageView
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_chevron_right" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="@color/brand_divider" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingHorizontal="18dp"
-                    android:paddingVertical="14dp">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_moon" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/dark_mode"
-                            android:textColor="@color/brand_text"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/dark_mode_caption"
-                            android:textColor="@color/brand_muted"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-
-                    <com.google.android.material.switchmaterial.SwitchMaterial
-                        android:id="@+id/darkModeSwitch"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:checked="false" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="@color/brand_divider" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:paddingHorizontal="18dp"
@@ -598,8 +415,12 @@
                     android:background="@color/brand_divider" />
 
                 <LinearLayout
+                    android:id="@+id/helpSupportButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:paddingHorizontal="18dp"
@@ -630,6 +451,59 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/help_support_caption"
+                            android:textColor="@color/brand_muted"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_chevron_right" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/brand_divider" />
+
+                <LinearLayout
+                    android:id="@+id/writeToUsButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="18dp"
+                    android:paddingVertical="14dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_email_outline" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/write_to_us"
+                            android:textColor="@color/brand_text"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/write_to_us_caption"
                             android:textColor="@color/brand_muted"
                             android:textSize="12sp" />
                     </LinearLayout>

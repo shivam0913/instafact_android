@@ -66,6 +66,7 @@ class AuthRepository(
             preferenceManager.saveSession(
                 userId = response.userId,
                 authToken = response.token,
+                refreshToken = response.refreshToken,
                 phoneNumber = phoneNumber,
             )
             SessionDebugLogger.logSessionSnapshot("POST /verify-otp", preferenceManager)

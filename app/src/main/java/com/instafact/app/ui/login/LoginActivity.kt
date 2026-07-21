@@ -11,6 +11,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.instafact.app.InstafactApplication
 import com.instafact.app.R
 import com.instafact.app.data.model.UserProfileResponse
+import com.instafact.app.data.api.SessionExpiryHandler
 import com.instafact.app.databinding.ActivityLoginBinding
 import com.instafact.app.databinding.DialogCompleteProfileBinding
 import com.instafact.app.ui.home.HomeActivity
@@ -35,6 +36,7 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        SessionExpiryHandler.resetRedirectState()
 
         val preferenceManager = (application as InstafactApplication).appContainer.preferenceManager
         if (preferenceManager.isLoggedIn()) {
@@ -97,6 +99,14 @@ class LoginActivity : AppCompatActivity() {
 
         binding.helperTextView.visibility = if (state.infoMessage.isNullOrBlank()) View.GONE else View.VISIBLE
         binding.helperTextView.text = state.infoMessage
+
+        if (intent.getBooleanExtra(IntentExtras.EXTRA_SESSION_EXPIRED, false)
+            && state.errorMessage.isNullOrBlank()
+            && state.infoMessage.isNullOrBlank()
+        ) {
+            binding.helperTextView.visibility = View.VISIBLE
+            binding.helperTextView.text = getString(R.string.session_expired_message)
+        }
 
         binding.otpContainer.visibility = if (state.isOtpStep) View.VISIBLE else View.GONE
         binding.requestOtpButton.visibility = if (state.isOtpStep) View.GONE else View.VISIBLE

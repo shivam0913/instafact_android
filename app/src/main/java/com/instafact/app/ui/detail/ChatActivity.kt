@@ -12,6 +12,7 @@ import com.instafact.app.InstafactApplication
 import com.instafact.app.R
 import com.instafact.app.databinding.ActivityChatBinding
 import com.instafact.app.ui.login.LoginActivity
+import com.instafact.app.ui.webview.InAppBrowserActivity
 import com.instafact.app.utils.IntentExtras
 import com.instafact.app.utils.UiState
 import com.instafact.app.utils.ViewModelFactory
@@ -64,6 +65,7 @@ class ChatActivity : AppCompatActivity() {
     private fun setupUi() {
         binding.backButton.setOnClickListener { finish() }
         chatAdapter = ChatAdapter()
+        chatAdapter.setOnLinkClicked { openInAppBrowser(it) }
         binding.chatRecyclerView.layoutManager = LinearLayoutManager(this)
         binding.chatRecyclerView.adapter = chatAdapter
         binding.sendChatButton.setOnClickListener {
@@ -131,5 +133,14 @@ class ChatActivity : AppCompatActivity() {
             return
         }
         viewModel.sendChatMessage(queryId, message)
+    }
+
+    private fun openInAppBrowser(url: String) {
+        startActivity(
+            Intent(this, InAppBrowserActivity::class.java).apply {
+                putExtra(IntentExtras.EXTRA_URL, url)
+                putExtra(IntentExtras.EXTRA_TITLE, getString(R.string.chat_source_title))
+            },
+        )
     }
 }

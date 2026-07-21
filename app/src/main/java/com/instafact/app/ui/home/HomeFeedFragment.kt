@@ -11,9 +11,11 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
+import coil.load
 import com.instafact.app.InstafactApplication
 import com.instafact.app.R
 import com.instafact.app.data.model.HistoryItemResponse
+import com.instafact.app.data.model.UserProfileResponse
 import com.instafact.app.databinding.FragmentHomeFeedBinding
 import com.instafact.app.ui.detail.DetailActivity
 import com.instafact.app.utils.IntentExtras
@@ -132,7 +134,7 @@ class HomeFeedFragment : Fragment() {
 
         profileViewModel.profileState.observe(viewLifecycleOwner) { state ->
             if (state is UiState.Success) {
-                renderGreetingName(state.data.name)
+                renderGreetingName(state.data)
             }
         }
 
@@ -173,12 +175,18 @@ class HomeFeedFragment : Fragment() {
         binding.greetingTextView.setText(greetingRes)
     }
 
-    private fun renderGreetingName(profileName: String? = null) {
-        val displayName = profileName?.trim()?.takeIf { it.isNotEmpty() }
+    private fun renderGreetingName(profile: UserProfileResponse? = null) {
+        val displayName = profile?.name?.trim()?.takeIf { it.isNotEmpty() }
+            ?: viewModel.getProfileName()?.trim()?.takeIf { it.isNotEmpty() }
             ?: viewModel.getPhoneNumber()?.takeLast(4)?.let { "User $it" }
             ?: getString(R.string.profile_display_name)
         binding.greetingNameTextView.text = "$displayName ${getString(R.string.home_greeting_wave)}"
-        binding.avatarButton.text = displayName.firstOrNull()?.uppercase() ?: "I"
+        val profileImageUrl = profile?.profileImageUrl?.trim()?.takeIf { it.isNotEmpty() }
+            ?: viewModel.getProfileImageUrl()?.trim()?.takeIf { it.isNotEmpty() }
+        binding.avatarTextView.text = displayName.firstOrNull()?.uppercase() ?: "I"
+        binding.avatarImageView.load(profileImageUrl)
+        binding.avatarImageView.visibility = if (profileImageUrl == null) View.GONE else View.VISIBLE
+        binding.avatarTextView.visibility = if (profileImageUrl == null) View.VISIBLE else View.GONE
     }
 
     private fun submitPastedUrl() {
@@ -196,7 +204,7 @@ class HomeFeedFragment : Fragment() {
                 Toast.LENGTH_SHORT,
             ).show()
 
-            else -> viewModel.submitSharedUrl(videoUrl)
+            else -> (activity as? HomeActivity)?.submitVideoUrl(videoUrl) ?: viewModel.submitSharedUrl(videoUrl)
         }
     }
 

@@ -31,7 +31,15 @@ class DetailViewModel(
         _detailState.value = UiState.Loading
         viewModelScope.launch {
             submissionRepository.getDetail(queryId)
-                .onSuccess { detail -> _detailState.value = UiState.Success(detail) }
+                .onSuccess { detail ->
+                    _detailState.value = UiState.Success(detail)
+                    submissionRepository.backfillDetailMetadata(detail)
+                        .onSuccess { enrichedDetail ->
+                            if (enrichedDetail != detail) {
+                                _detailState.postValue(UiState.Success(enrichedDetail))
+                            }
+                        }
+                }
                 .onFailure { error ->
                     _detailState.value = UiState.Error(error.message.orEmpty())
                 }

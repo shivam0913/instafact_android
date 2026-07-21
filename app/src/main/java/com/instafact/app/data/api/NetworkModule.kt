@@ -17,6 +17,10 @@ object NetworkModule {
         context: Context,
         preferenceManager: PreferenceManager,
     ): ApiService {
+        val sessionExpiryHandler = SessionExpiryHandler(
+            appContext = context.applicationContext,
+            preferenceManager = preferenceManager,
+        )
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = if (BuildConfig.DEBUG) {
                 HttpLoggingInterceptor.Level.BODY
@@ -29,6 +33,7 @@ object NetworkModule {
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
+            .authenticator(TokenRefreshAuthenticator(preferenceManager, sessionExpiryHandler))
             .addInterceptor(AuthInterceptor(preferenceManager))
             .addInterceptor(loggingInterceptor)
             .build()

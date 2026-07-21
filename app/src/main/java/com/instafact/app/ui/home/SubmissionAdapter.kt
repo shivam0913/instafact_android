@@ -9,6 +9,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.instafact.app.R
 import com.instafact.app.data.model.HistoryItemResponse
 import com.instafact.app.databinding.ItemSubmissionBinding
+import com.instafact.app.utils.displayConfidence
+import com.instafact.app.utils.displayStatus
 import com.instafact.app.utils.displayVerdict
 import com.instafact.app.utils.loadThumbnail
 import com.instafact.app.utils.platformIconRes
@@ -49,10 +51,9 @@ class SubmissionAdapter(
             binding.thumbnailImageView.loadThumbnail(item.thumbnailUrl)
             binding.verdictTextView.text = item.verdict.displayVerdict(context)
             binding.statusTextView.text = if (item.status.equals("completed", true)) {
-                if (item.factCheckCount > 0) "${(65 + (item.factCheckCount % 30))}%"
-                else context.getString(R.string.unknown)
+                item.confidence.displayConfidence(context)
             } else {
-                item.status.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+                item.status.displayStatus(context)
             }
             binding.countTextView.text = if (item.factCheckCount > 0) {
                 context.resources.getQuantityString(

@@ -29,7 +29,10 @@ class ProfileRepository(
         runCatching {
             apiService.getProfile()
         }.fold(
-            onSuccess = { Result.success(it) },
+            onSuccess = {
+                cacheProfile(it)
+                Result.success(it)
+            },
             onFailure = { Result.failure(Exception(ApiErrorParser.getMessage(context, it), it)) },
         )
     }
@@ -38,7 +41,10 @@ class ProfileRepository(
         runCatching {
             apiService.updateProfile(request)
         }.fold(
-            onSuccess = { Result.success(it) },
+            onSuccess = {
+                cacheProfile(it)
+                Result.success(it)
+            },
             onFailure = { Result.failure(Exception(ApiErrorParser.getMessage(context, it), it)) },
         )
     }
@@ -78,8 +84,17 @@ class ProfileRepository(
 
     fun getPhoneNumber(): String? = preferenceManager.getPhoneNumber()
 
+    fun getProfileName(): String? = preferenceManager.getProfileName()
+
+    fun getProfileImageUrl(): String? = preferenceManager.getProfileImageUrl()
+
     fun logout() {
         preferenceManager.clearUserSession()
+    }
+
+    private fun cacheProfile(profile: UserProfileResponse) {
+        preferenceManager.saveProfileName(profile.name)
+        preferenceManager.saveProfileImageUrl(profile.profileImageUrl)
     }
 
     private fun ContentResolver.queryDisplayName(uri: Uri): String? {

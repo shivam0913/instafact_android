@@ -3,12 +3,12 @@ package com.instafact.app.ui.detail
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.text.method.LinkMovementMethod
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.google.android.material.chip.Chip
 import com.instafact.app.InstafactApplication
 import com.instafact.app.R
 import com.instafact.app.data.model.DetailResponse
@@ -22,12 +22,13 @@ import com.instafact.app.utils.applySystemBarInsets
 import com.instafact.app.utils.configureSystemBars
 import com.instafact.app.utils.displayConfidence
 import com.instafact.app.utils.displayVerdict
+import com.instafact.app.utils.ellipsized
 import com.instafact.app.utils.explanationAsBullets
 import com.instafact.app.utils.loadThumbnail
 import com.instafact.app.utils.platformIconRes
 import com.instafact.app.utils.platformSourceLabel
-import com.instafact.app.utils.sourceCountLabel
 import com.instafact.app.utils.toReadableHeadline
+import com.instafact.app.utils.toRelativeTimeLabel
 import com.instafact.app.utils.verdictColorRes
 import com.instafact.app.utils.verdictSectionTitle
 import com.instafact.app.viewmodel.DetailViewModel
@@ -41,6 +42,7 @@ class DetailActivity : AppCompatActivity() {
     }
 
     private var queryId: Int = -1
+    private var currentVideoUrl: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,11 +79,10 @@ class DetailActivity : AppCompatActivity() {
     private fun setupUi() {
         binding.backButton.setOnClickListener { finish() }
         binding.shareButton.setOnClickListener { shareCurrentResult() }
-        binding.bookmarkButton.setOnClickListener {
-            Toast.makeText(this, getString(R.string.detail_share_bookmark), Toast.LENGTH_SHORT).show()
-        }
-        binding.videoUrlTextView.movementMethod = LinkMovementMethod.getInstance()
+        binding.linkShareButton.setOnClickListener { shareCurrentResult() }
         binding.videoUrlTextView.setOnClickListener { openVideoLink() }
+        binding.videoPreviewContainer.setOnClickListener { openVideoLink() }
+        binding.thumbnailImageView.setOnClickListener { openVideoLink() }
         binding.askAiButton.setOnClickListener {
             startActivity(
                 Intent(this, ChatActivity::class.java).apply {
@@ -89,12 +90,8 @@ class DetailActivity : AppCompatActivity() {
                 },
             )
         }
-        binding.thumbsUpButton.setOnClickListener {
-            viewModel.submitFeedback(queryId, FeedbackType.UP)
-        }
-        binding.thumbsDownButton.setOnClickListener {
-            viewModel.submitFeedback(queryId, FeedbackType.DOWN)
-        }
+        binding.thumbsUpButton.setOnClickListener { viewModel.submitFeedback(queryId, FeedbackType.UP) }
+        binding.thumbsDownButton.setOnClickListener { viewModel.submitFeedback(queryId, FeedbackType.DOWN) }
         updateFeedbackButtons(viewModel.hasUserVoted(queryId))
     }
 
@@ -144,31 +141,49 @@ class DetailActivity : AppCompatActivity() {
 
         val verdictText = detail.verdict.displayVerdict(this)
         val verdictColor = ContextCompat.getColor(this, detail.verdict.verdictColorRes())
+        currentVideoUrl = detail.videoUrl
 
         binding.statusTextView.text = detail.title?.takeIf { it.isNotBlank() } ?: detail.videoUrl.toReadableHeadline()
         binding.platformImageView.setImageResource(detail.videoUrl.platformIconRes())
         binding.platformNameTextView.text =
             detail.channelName?.takeIf { it.isNotBlank() } ?: detail.videoUrl.platformSourceLabel(this)
-        binding.videoMetaTextView.text = getString(R.string.detail_posted_meta, "", "3d")
-        binding.videoUrlTextView.text = detail.videoUrl
+
+        val relativeTime = detail.createdAt.toRelativeTimeLabel(this)
+        binding.videoMetaTextView.visibility = if (relativeTime == null) View.GONE else View.VISIBLE
+        binding.videoMetaTextView.text = relativeTime?.let { getString(R.string.detail_shared_meta, it) }
+
+        binding.videoUrlTextView.text = detail.videoUrl.ellipsized(46)
         binding.thumbnailImageView.loadThumbnail(detail.thumbnailUrl)
         binding.verdictTextView.text = verdictText
         binding.confidenceTextView.text = detail.confidence.displayConfidence(this)
         binding.verdictBannerCard.setCardBackgroundColor(verdictColor)
         binding.verifiedChipTextView.text = getString(R.string.ai_verified)
-        binding.checkedSourcesChipTextView.text = detail.verdict.sourceCountLabel(this, detail.tags.size.coerceAtLeast(2))
+        binding.checkedSourcesChipTextView.text = getString(R.string.checked_sources_count, detail.tags.size)
         binding.explanationTitleTextView.text = detail.verdict.verdictSectionTitle(this)
         binding.explanationTextView.text =
             (detail.explanation ?: getString(R.string.detail_result_pending)).explanationAsBullets()
-        binding.sourceOneTextView.text = detail.tags.getOrNull(0) ?: "1 ResearchGate"
-        binding.sourceTwoTextView.text = detail.tags.getOrNull(1) ?: "2 NCBI"
-        binding.sourceThreeTextView.text = if (detail.tags.size > 2) {
-            "+${detail.tags.size - 2}"
-        } else {
-            "+2"
-        }
+        renderTags(detail.tags)
         binding.askAiButton.visibility = if (detail.status.equals("completed", ignoreCase = true)) View.VISIBLE else View.GONE
         updateFeedbackButtons(viewModel.hasUserVoted(queryId))
+    }
+
+    private fun renderTags(tags: List<String>) {
+        binding.tagsChipGroup.removeAllViews()
+        val hasTags = tags.isNotEmpty()
+        binding.sourcesLabelTextView.visibility = if (hasTags) View.VISIBLE else View.GONE
+        binding.tagsChipGroup.visibility = if (hasTags) View.VISIBLE else View.GONE
+
+        tags.forEach { tag ->
+            val chip = Chip(this).apply {
+                text = tag
+                isClickable = false
+                isCheckable = false
+                setEnsureMinTouchTargetSize(false)
+                setTextColor(ContextCompat.getColor(context, R.color.brand_text))
+                chipBackgroundColor = ContextCompat.getColorStateList(context, R.color.brand_primary_soft)
+            }
+            binding.tagsChipGroup.addView(chip)
+        }
     }
 
     private fun shareCurrentResult() {
@@ -194,7 +209,7 @@ class DetailActivity : AppCompatActivity() {
     }
 
     private fun openVideoLink() {
-        val url = binding.videoUrlTextView.text?.toString().orEmpty()
+        val url = currentVideoUrl.ifBlank { binding.videoUrlTextView.text?.toString().orEmpty() }
         if (url.isBlank()) return
         startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
     }

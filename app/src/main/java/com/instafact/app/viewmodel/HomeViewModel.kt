@@ -30,6 +30,12 @@ class HomeViewModel(
             submissionRepository.getHistory()
                 .onSuccess { history ->
                     _historyState.value = UiState.Success(history)
+                    submissionRepository.backfillHistoryMetadata(history)
+                        .onSuccess { enrichedHistory ->
+                            if (enrichedHistory != history) {
+                                _historyState.postValue(UiState.Success(enrichedHistory))
+                            }
+                        }
                 }
                 .onFailure { error ->
                     _historyState.value = UiState.Error(error.message.orEmpty())
@@ -43,6 +49,12 @@ class HomeViewModel(
             submissionRepository.getExplore(limit)
                 .onSuccess { items ->
                     _exploreState.value = UiState.Success(items)
+                    submissionRepository.backfillExploreMetadata(items)
+                        .onSuccess { enrichedItems ->
+                            if (enrichedItems != items) {
+                                _exploreState.postValue(UiState.Success(enrichedItems))
+                            }
+                        }
                 }
                 .onFailure { error ->
                     _exploreState.value = UiState.Error(error.message.orEmpty())
@@ -70,4 +82,8 @@ class HomeViewModel(
     fun getUserId(): Int? = submissionRepository.getUserId()
 
     fun getPhoneNumber(): String? = submissionRepository.getPhoneNumber()
+
+    fun getProfileName(): String? = submissionRepository.getProfileName()
+
+    fun getProfileImageUrl(): String? = submissionRepository.getProfileImageUrl()
 }

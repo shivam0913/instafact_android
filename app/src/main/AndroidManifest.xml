@@ -36,6 +36,14 @@
             android:exported="false" />
 
         <activity
+            android:name=".ui.webview.InAppBrowserActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.support.HelpSupportActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.home.HomeActivity"
             android:exported="true"
             android:launchMode="singleTop" >

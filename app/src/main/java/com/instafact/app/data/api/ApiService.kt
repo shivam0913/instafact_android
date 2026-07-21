@@ -15,6 +15,8 @@ import com.instafact.app.data.model.ProfileImageUploadUrlRequest
 import com.instafact.app.data.model.ProfileImageUploadUrlResponse
 import com.instafact.app.data.model.SubmitRequest
 import com.instafact.app.data.model.SubmitResponse
+import com.instafact.app.data.model.TokenRefreshRequest
+import com.instafact.app.data.model.TokenRefreshResponse
 import com.instafact.app.data.model.UserProfileResponse
 import com.instafact.app.data.model.UserProfileUpdateRequest
 import com.instafact.app.data.model.UserRegisterRequest
@@ -42,6 +44,11 @@ interface ApiService {
     suspend fun verifyOtp(
         @Body request: OTPVerifyRequest,
     ): UserRegisterResponse
+
+    @POST("refresh-token")
+    suspend fun refreshToken(
+        @Body request: TokenRefreshRequest,
+    ): TokenRefreshResponse
 
     @GET("profile")
     suspend fun getProfile(): UserProfileResponse

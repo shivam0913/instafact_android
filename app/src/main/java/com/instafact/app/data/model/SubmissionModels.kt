@@ -3,6 +3,9 @@ package com.instafact.app.data.model
 data class SubmitRequest(
     val userId: Int,
     val videoUrl: String,
+    val title: String? = null,
+    val channelName: String? = null,
+    val thumbnailUrl: String? = null,
 )
 
 data class SubmitResponse(
@@ -13,11 +16,13 @@ data class SubmitResponse(
 data class HistoryItemResponse(
     val queryId: Int,
     val videoUrl: String,
+    val createdAt: String? = null,
     val title: String? = null,
     val channelName: String? = null,
     val thumbnailUrl: String? = null,
     val status: String,
     val verdict: String?,
+    val confidence: Int? = null,
     val tags: List<String> = emptyList(),
     val factCheckCount: Int = 0,
 )
@@ -25,6 +30,7 @@ data class HistoryItemResponse(
 data class DetailResponse(
     val queryId: Int,
     val videoUrl: String,
+    val createdAt: String? = null,
     val title: String? = null,
     val channelName: String? = null,
     val thumbnailUrl: String? = null,
@@ -39,6 +45,7 @@ data class DetailResponse(
 data class ExploreItemResponse(
     val queryId: Int,
     val videoUrl: String,
+    val createdAt: String? = null,
     val title: String? = null,
     val channelName: String? = null,
     val thumbnailUrl: String? = null,

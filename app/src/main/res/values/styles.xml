@@ -26,4 +26,9 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">29dp</item>
     </style>
+
+    <style name="InstafactShapeAppearanceAvatarCircle">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">999dp</item>
+    </style>
 </resources>

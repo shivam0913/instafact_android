@@ -64,6 +64,8 @@ class ProfileViewModel(
 
     fun getPhoneNumber(): String? = profileRepository.getPhoneNumber()
 
+    fun getProfileName(): String? = profileRepository.getProfileName()
+
     fun logout() {
         profileRepository.logout()
     }

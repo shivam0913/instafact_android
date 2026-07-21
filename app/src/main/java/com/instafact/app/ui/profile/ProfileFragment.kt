@@ -1,9 +1,5 @@
 package com.instafact.app.ui.profile
 
-import android.app.AlertDialog
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -14,9 +10,9 @@ import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.widget.doAfterTextChanged
 import androidx.core.content.FileProvider
 import androidx.core.view.isVisible
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import coil.load
@@ -27,6 +23,7 @@ import com.instafact.app.data.model.UserProfileResponse
 import com.instafact.app.data.model.UserProfileUpdateRequest
 import com.instafact.app.databinding.DialogEditProfileBinding
 import com.instafact.app.databinding.FragmentProfileBinding
+import com.instafact.app.ui.support.HelpSupportActivity
 import com.instafact.app.ui.splash.SplashActivity
 import com.instafact.app.utils.UiState
 import com.instafact.app.utils.ViewModelFactory
@@ -43,6 +40,7 @@ class ProfileFragment : Fragment() {
     private var latestProfile: UserProfileResponse? = null
     private var editDialogBinding: DialogEditProfileBinding? = null
     private var pendingCameraImageUri: Uri? = null
+    private var editingProfileImageUrl: String? = null
 
     private val viewModel: ProfileViewModel by viewModels {
         ViewModelFactory((requireActivity().application as InstafactApplication).appContainer)
@@ -76,9 +74,6 @@ class ProfileFragment : Fragment() {
 
         renderFallbackProfile()
 
-        binding.connectInstagramButton.setOnClickListener {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.instagram.com/")))
-        }
         binding.shareFriendsButton.setOnClickListener {
             startActivity(
                 Intent.createChooser(
@@ -93,6 +88,30 @@ class ProfileFragment : Fragment() {
                 ),
             )
         }
+        binding.writeToUsButton.setOnClickListener {
+            val emailIntent = Intent(
+                Intent.ACTION_SENDTO,
+                Uri.parse("mailto:connect@instafact.co"),
+            ).apply {
+                putExtra(Intent.EXTRA_SUBJECT, getString(R.string.write_to_us_subject))
+            }
+            runCatching {
+                startActivity(
+                    Intent.createChooser(
+                        emailIntent,
+                        getString(R.string.write_to_us),
+                    ),
+                )
+            }.onFailure {
+                Toast.makeText(requireContext(), getString(R.string.no_email_app), Toast.LENGTH_SHORT).show()
+            }
+        }
+        binding.helpSupportButton.setOnClickListener {
+            startActivity(Intent(requireContext(), HelpSupportActivity::class.java))
+        }
+        binding.privacyButton.setOnClickListener {
+            showPrivacyPolicyDialog()
+        }
         binding.logoutButton.setOnClickListener {
             viewModel.logout()
             Toast.makeText(requireContext(), getString(R.string.logged_out), Toast.LENGTH_SHORT).show()
@@ -105,12 +124,6 @@ class ProfileFragment : Fragment() {
         }
         binding.profileRetryButton.setOnClickListener { viewModel.loadProfile() }
         binding.editProfileButton.setOnClickListener { showEditProfileDialog() }
-        binding.profileImageUrlValueTextView.setOnClickListener {
-            val profileUrl = binding.profileImageUrlValueTextView.text?.toString().orEmpty()
-            if (profileUrl.isBlank() || profileUrl == getString(R.string.profile_dp_url_missing)) return@setOnClickListener
-            copyToClipboard(profileUrl)
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(profileUrl)))
-        }
 
         observeProfile()
         viewModel.loadProfile()
@@ -174,8 +187,8 @@ class ProfileFragment : Fragment() {
                 is UiState.Success -> {
                     dialogBinding.choosePhotoButton.isEnabled = true
                     dialogBinding.choosePhotoButton.text = getString(R.string.profile_choose_photo)
-                    dialogBinding.profileImageUrlEditText.setText(state.data)
-                    dialogBinding.profilePhotoPreviewImageView.load(state.data)
+                    editingProfileImageUrl = state.data
+                    renderEditProfilePhoto(dialogBinding, state.data)
                     Toast.makeText(
                         requireContext(),
                         getString(R.string.profile_photo_upload_success),
@@ -203,13 +216,11 @@ class ProfileFragment : Fragment() {
         binding.nameValueTextView.text = getString(R.string.profile_not_set)
         binding.genderValueTextView.text = getString(R.string.profile_not_set)
         binding.ageGroupValueTextView.text = getString(R.string.profile_not_set)
-        binding.userIdValueTextView.text = "-"
         binding.phoneValueTextView.text = phoneNumber.ifBlank { "-" }
         binding.factChecksValueTextView.text = "0"
         binding.memberSinceValueTextView.text = getString(R.string.profile_unknown_member_since)
         binding.referralCodeValueTextView.text = "-"
         binding.referralCodeDetailsValueTextView.text = "-"
-        binding.profileImageUrlValueTextView.text = getString(R.string.profile_dp_url_missing)
     }
 
     private fun bindProfile(profile: UserProfileResponse) {
@@ -224,14 +235,11 @@ class ProfileFragment : Fragment() {
         binding.nameValueTextView.text = profile.name?.takeIf { it.isNotBlank() } ?: getString(R.string.profile_not_set)
         binding.genderValueTextView.text = profile.gender.toDisplayLabel()
         binding.ageGroupValueTextView.text = profile.ageGroup.toDisplayLabel()
-        binding.userIdValueTextView.text = profile.userId.toString()
         binding.phoneValueTextView.text = profile.phoneNumber
         binding.factChecksValueTextView.text = profile.factCheckedContentCount.toString()
         binding.memberSinceValueTextView.text = formatMemberSince(profile.memberSince)
         binding.referralCodeValueTextView.text = profile.referralCode
         binding.referralCodeDetailsValueTextView.text = profile.referralCode
-        binding.profileImageUrlValueTextView.text =
-            profile.profileImageUrl ?: getString(R.string.profile_dp_url_missing)
     }
 
     private fun showEditProfileDialog() {
@@ -243,64 +251,58 @@ class ProfileFragment : Fragment() {
 
         val dialogBinding = DialogEditProfileBinding.inflate(layoutInflater)
         editDialogBinding = dialogBinding
-        val genderOptions = genderOptions()
         val ageGroupOptions = ageGroupOptions()
 
-        setupDropdown(dialogBinding.genderAutoCompleteTextView, genderOptions.map { it.first })
         setupDropdown(dialogBinding.ageGroupAutoCompleteTextView, ageGroupOptions.map { it.first })
 
+        editingProfileImageUrl = profile.profileImageUrl
         dialogBinding.nameEditText.setText(profile.name.orEmpty())
-        dialogBinding.profileImageUrlEditText.setText(profile.profileImageUrl.orEmpty())
-        dialogBinding.profilePhotoPreviewImageView.load(profile.profileImageUrl)
-        dialogBinding.genderAutoCompleteTextView.setText(
-            genderOptions.firstOrNull { it.second == profile.gender }?.first ?: getString(R.string.profile_not_set),
-            false,
-        )
+        renderEditProfilePhoto(dialogBinding, profile.profileImageUrl)
+        applyGenderSelection(dialogBinding, profile.gender)
         dialogBinding.ageGroupAutoCompleteTextView.setText(
             ageGroupOptions.firstOrNull { it.second == profile.ageGroup }?.first ?: getString(R.string.profile_not_set),
             false,
         )
         dialogBinding.choosePhotoButton.setOnClickListener { showPhotoSourceChooser() }
-        dialogBinding.profileImageUrlEditText.doAfterTextChanged { text ->
-            val currentUrl = text?.toString()?.trim().orEmpty()
-            if (isValidHttpUrl(currentUrl)) {
-                dialogBinding.profilePhotoPreviewImageView.load(currentUrl)
-            }
+        dialogBinding.photoActionButton.setOnClickListener { showPhotoSourceChooser() }
+        dialogBinding.nameEditText.doAfterTextChanged {
+            renderEditProfilePhoto(dialogBinding, editingProfileImageUrl)
+        }
+
+        dialogBinding.genderMaleButton.setOnClickListener {
+            applyGenderSelection(dialogBinding, "male")
+        }
+        dialogBinding.genderFemaleButton.setOnClickListener {
+            applyGenderSelection(dialogBinding, "female")
+        }
+        dialogBinding.genderPreferNotButton.setOnClickListener {
+            applyGenderSelection(dialogBinding, "other")
         }
 
         val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.profile_edit_title)
             .setView(dialogBinding.root)
-            .setNegativeButton(R.string.profile_edit_cancel, null)
-            .setPositiveButton(R.string.profile_edit_save, null)
             .create()
+
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         dialog.setOnDismissListener {
             editDialogBinding = null
             pendingCameraImageUri = null
+            editingProfileImageUrl = null
         }
 
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val profileImageUrl = dialogBinding.profileImageUrlEditText.text?.toString()?.trim().orEmpty()
-                if (profileImageUrl.isNotBlank() && !isValidHttpUrl(profileImageUrl)) {
-                    dialogBinding.profileImageUrlEditText.error = getString(R.string.invalid_profile_image_url)
-                    return@setOnClickListener
-                }
-
-                val updateRequest = UserProfileUpdateRequest(
-                    name = dialogBinding.nameEditText.text?.toString()?.trim().orEmpty().ifBlank { null },
-                    gender = genderOptions.firstOrNull {
-                        it.first == dialogBinding.genderAutoCompleteTextView.text?.toString().orEmpty()
-                    }?.second,
-                    ageGroup = ageGroupOptions.firstOrNull {
-                        it.first == dialogBinding.ageGroupAutoCompleteTextView.text?.toString().orEmpty()
-                    }?.second,
-                    profileImageUrl = profileImageUrl.ifBlank { null },
-                )
-                viewModel.updateProfile(updateRequest)
-                dialog.dismiss()
-            }
+        dialogBinding.discardChangesButton.setOnClickListener { dialog.dismiss() }
+        dialogBinding.saveProfileButton.setOnClickListener {
+            val updateRequest = UserProfileUpdateRequest(
+                name = dialogBinding.nameEditText.text?.toString()?.trim().orEmpty().ifBlank { null },
+                gender = selectedGender(dialogBinding),
+                ageGroup = ageGroupOptions.firstOrNull {
+                    it.first == dialogBinding.ageGroupAutoCompleteTextView.text?.toString().orEmpty()
+                }?.second,
+                profileImageUrl = editingProfileImageUrl,
+            )
+            viewModel.updateProfile(updateRequest)
+            dialog.dismiss()
         }
 
         dialog.show()
@@ -313,11 +315,16 @@ class ProfileFragment : Fragment() {
                 arrayOf(
                     getString(R.string.profile_photo_camera),
                     getString(R.string.profile_photo_gallery),
+                    getString(R.string.profile_photo_remove),
                 ),
             ) { _, which ->
                 when (which) {
                     0 -> launchCameraPicker()
                     1 -> galleryPickerLauncher.launch("image/*")
+                    2 -> {
+                        editingProfileImageUrl = null
+                        editDialogBinding?.let { renderEditProfilePhoto(it, null) }
+                    }
                 }
             }
             .show()
@@ -349,14 +356,79 @@ class ProfileFragment : Fragment() {
         }
     }
 
-    private fun copyToClipboard(value: String) {
-        val clipboardManager = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboardManager.setPrimaryClip(ClipData.newPlainText(getString(R.string.profile_dp_url), value))
-        Toast.makeText(requireContext(), getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
+    private fun showPrivacyPolicyDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.privacy_policy_title)
+            .setMessage(getString(R.string.privacy_policy_body))
+            .setPositiveButton(R.string.close, null)
+            .show()
     }
 
     private fun setupDropdown(view: AutoCompleteTextView, options: List<String>) {
         view.setAdapter(ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, options))
+    }
+
+    private fun renderEditProfilePhoto(dialogBinding: DialogEditProfileBinding, imageUrl: String?) {
+        dialogBinding.profilePhotoPreviewImageView.load(imageUrl) {
+            crossfade(true)
+        }
+        dialogBinding.profilePhotoInitialTextView.isVisible = imageUrl.isNullOrBlank()
+        dialogBinding.profilePhotoInitialTextView.text =
+            dialogBinding.nameEditText.text?.toString()?.trim()?.firstOrNull()?.uppercase() ?: "I"
+    }
+
+    private fun applyGenderSelection(dialogBinding: DialogEditProfileBinding, gender: String?) {
+        updateGenderButton(dialogBinding.genderMaleButton, gender == "male", filled = false)
+        updateGenderButton(dialogBinding.genderFemaleButton, gender == "female", filled = false)
+        updateGenderButton(dialogBinding.genderPreferNotButton, gender == "other", filled = true)
+    }
+
+    private fun selectedGender(dialogBinding: DialogEditProfileBinding): String? {
+        return when {
+            dialogBinding.genderMaleButton.tag == true -> "male"
+            dialogBinding.genderFemaleButton.tag == true -> "female"
+            dialogBinding.genderPreferNotButton.tag == true -> "other"
+            else -> null
+        }
+    }
+
+    private fun updateGenderButton(
+        button: com.google.android.material.button.MaterialButton,
+        selected: Boolean,
+        filled: Boolean,
+    ) {
+        button.tag = selected
+        if (filled) {
+            button.setBackgroundColor(
+                if (selected) requireContext().getColor(R.color.brand_primary)
+                else requireContext().getColor(R.color.brand_primary_soft),
+            )
+            button.setTextColor(
+                if (selected) requireContext().getColor(android.R.color.white)
+                else requireContext().getColor(R.color.brand_primary),
+            )
+            button.iconTint = android.content.res.ColorStateList.valueOf(
+                if (selected) requireContext().getColor(android.R.color.white)
+                else requireContext().getColor(R.color.brand_primary),
+            )
+        } else {
+            button.setBackgroundColor(
+                if (selected) requireContext().getColor(R.color.brand_primary_soft)
+                else requireContext().getColor(android.R.color.white),
+            )
+            button.strokeColor = android.content.res.ColorStateList.valueOf(
+                if (selected) requireContext().getColor(R.color.brand_primary)
+                else requireContext().getColor(R.color.brand_border),
+            )
+            button.setTextColor(
+                if (selected) requireContext().getColor(R.color.brand_primary)
+                else requireContext().getColor(R.color.brand_text),
+            )
+            button.iconTint = android.content.res.ColorStateList.valueOf(
+                if (selected) requireContext().getColor(R.color.brand_primary)
+                else requireContext().getColor(R.color.brand_text),
+            )
+        }
     }
 
     private fun genderOptions(): List<Pair<String, String?>> = listOf(
@@ -391,11 +463,6 @@ class ProfileFragment : Fragment() {
             "55_plus" -> "55+"
             else -> getString(R.string.profile_not_set)
         }
-    }
-
-    private fun isValidHttpUrl(value: String): Boolean {
-        val uri = runCatching { Uri.parse(value) }.getOrNull() ?: return false
-        return !uri.host.isNullOrBlank() && (uri.scheme == "http" || uri.scheme == "https")
     }
 
     override fun onDestroyView() {

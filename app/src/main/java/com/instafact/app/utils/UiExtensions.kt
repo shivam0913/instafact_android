@@ -1,10 +1,17 @@
 package com.instafact.app.utils
 
 import android.content.Context
+import android.text.format.DateUtils
 import androidx.annotation.ColorRes
 import com.instafact.app.R
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 fun String?.displayStatus(context: Context): String {
     return when (this?.lowercase()) {
@@ -87,6 +94,16 @@ fun String.ellipsized(maxLength: Int = 58): String {
     return if (length <= maxLength) this else take(maxLength - 1).trimEnd() + "..."
 }
 
+fun String?.toRelativeTimeLabel(context: Context): String? {
+    val instant = this.toInstantOrNull() ?: return null
+    return DateUtils.getRelativeTimeSpanString(
+        instant.toEpochMilli(),
+        System.currentTimeMillis(),
+        DateUtils.MINUTE_IN_MILLIS,
+        DateUtils.FORMAT_ABBREV_RELATIVE,
+    ).toString()
+}
+
 fun String?.explanationAsBullets(): String {
     val value = this?.trim().orEmpty()
     if (value.isBlank()) return ""
@@ -97,5 +114,25 @@ fun String?.explanationAsBullets(): String {
         "\u2022 $value"
     } else {
         parts.joinToString("\n\n") { "\u2022 $it" }
+    }
+}
+
+private fun String?.toInstantOrNull(): Instant? {
+    if (this.isNullOrBlank()) return null
+
+    return parseAttempt { Instant.parse(this) }
+        ?: parseAttempt { OffsetDateTime.parse(this).toInstant() }
+        ?: parseAttempt {
+            LocalDateTime.parse(this, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                .atZone(ZoneId.systemDefault())
+                .toInstant()
+        }
+}
+
+private inline fun parseAttempt(block: () -> Instant): Instant? {
+    return try {
+        block()
+    } catch (_: DateTimeParseException) {
+        null
     }
 }

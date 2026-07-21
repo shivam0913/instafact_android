@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/brand_surface"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp">
+
+        <ImageButton
+            android:id="@+id/backButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/drawer_close"
+            android:src="@drawable/ic_back_round" />
+
+        <TextView
+            android:id="@+id/titleTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/brand_text"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            tools:text="Source" />
+
+        <ImageButton
+            android:id="@+id/closeButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/close"
+            android:src="@drawable/ic_close"
+            android:tint="@color/brand_text" />
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:max="100" />
+
+    <WebView
+        android:id="@+id/webView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+</LinearLayout>

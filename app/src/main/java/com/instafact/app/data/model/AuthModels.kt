@@ -25,4 +25,14 @@ data class OTPVerifyRequest(
 data class UserRegisterResponse(
     val userId: Int,
     val token: String,
+    val refreshToken: String,
+)
+
+data class TokenRefreshRequest(
+    val refreshToken: String,
+)
+
+data class TokenRefreshResponse(
+    val token: String,
+    val refreshToken: String,
 )

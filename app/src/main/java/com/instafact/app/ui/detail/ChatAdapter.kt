@@ -9,12 +9,19 @@ import androidx.recyclerview.widget.RecyclerView
 import com.instafact.app.R
 import com.instafact.app.data.model.ChatMessageItem
 import com.instafact.app.databinding.ItemChatMessageBinding
+import com.instafact.app.utils.setInAppLinkText
 
 class ChatAdapter : ListAdapter<ChatMessageItem, ChatAdapter.ChatViewHolder>(DiffCallback) {
 
+    private var onLinkClicked: ((String) -> Unit)? = null
+
+    fun setOnLinkClicked(listener: (String) -> Unit) {
+        onLinkClicked = listener
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatViewHolder {
         val binding = ItemChatMessageBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ChatViewHolder(binding)
+        return ChatViewHolder(binding, onLinkClicked)
     }
 
     override fun onBindViewHolder(holder: ChatViewHolder, position: Int) {
@@ -23,12 +30,18 @@ class ChatAdapter : ListAdapter<ChatMessageItem, ChatAdapter.ChatViewHolder>(Dif
 
     class ChatViewHolder(
         private val binding: ItemChatMessageBinding,
+        private val onLinkClicked: ((String) -> Unit)?,
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: ChatMessageItem) {
             val isUser = item.role.equals("user", ignoreCase = true)
             val context = binding.root.context
-            binding.messageTextView.text = item.content
+            val listener = onLinkClicked
+            if (listener != null) {
+                binding.messageTextView.setInAppLinkText(item.content, listener)
+            } else {
+                binding.messageTextView.text = item.content
+            }
             binding.roleTextView.text = if (isUser) "You" else "Instafact AI"
             val params = binding.messageCardView.layoutParams as ViewGroup.MarginLayoutParams
             if (isUser) {

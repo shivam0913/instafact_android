@@ -6,13 +6,18 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
+import android.provider.Settings
 import android.view.View
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
+import androidx.core.app.NotificationManagerCompat
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.instafact.app.InstafactApplication
 import com.instafact.app.R
 import com.instafact.app.databinding.ActivityHomeBinding
@@ -37,6 +42,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private var selectedTabId: Int = R.id.menu_home
+    private var lastBackPressedAt: Long = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,6 +71,7 @@ class HomeActivity : AppCompatActivity() {
 
         setupDrawer()
         setupBottomNavigation()
+        setupBackPressHandling()
         observeViewModel()
         maybeRequestNotificationPermission()
 
@@ -89,6 +96,16 @@ class HomeActivity : AppCompatActivity() {
         binding.bottomNavigationView.selectedItemId = R.id.menu_profile
     }
 
+    fun submitVideoUrl(videoUrl: String) {
+        if (areNotificationsDisabled()) {
+            showNotificationPrompt {
+                viewModel.submitSharedUrl(videoUrl)
+            }
+        } else {
+            viewModel.submitSharedUrl(videoUrl)
+        }
+    }
+
     private fun setupDrawer() {
         binding.navigationView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
@@ -110,6 +127,38 @@ class HomeActivity : AppCompatActivity() {
             switchTab(item.itemId)
             true
         }
+    }
+
+    private fun setupBackPressHandling() {
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    when {
+                        binding.drawerLayout.isDrawerOpen(GravityCompat.START) -> {
+                            binding.drawerLayout.closeDrawer(GravityCompat.START)
+                        }
+
+                        selectedTabId != R.id.menu_home -> {
+                            binding.bottomNavigationView.selectedItemId = R.id.menu_home
+                        }
+
+                        shouldExitApp() -> {
+                            finish()
+                        }
+
+                        else -> {
+                            lastBackPressedAt = SystemClock.elapsedRealtime()
+                            Toast.makeText(
+                                this@HomeActivity,
+                                getString(R.string.press_back_again_to_exit),
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        }
+                    }
+                }
+            },
+        )
     }
 
     private fun observeViewModel() {
@@ -145,7 +194,7 @@ class HomeActivity : AppCompatActivity() {
             Toast.makeText(this, getString(R.string.unsupported_url), Toast.LENGTH_LONG).show()
             return
         }
-        viewModel.submitSharedUrl(sharedUrl)
+        submitVideoUrl(sharedUrl)
     }
 
     private fun switchTab(itemId: Int) {
@@ -228,7 +277,49 @@ class HomeActivity : AppCompatActivity() {
         )
     }
 
+    private fun areNotificationsDisabled(): Boolean {
+        val permissionMissing = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        return permissionMissing || !NotificationManagerCompat.from(this).areNotificationsEnabled()
+    }
+
+    private fun showNotificationPrompt(onContinue: () -> Unit) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.notifications_off_title)
+            .setMessage(R.string.notifications_off_message)
+            .setNegativeButton(R.string.notifications_continue_without) { dialog, _ ->
+                dialog.dismiss()
+                onContinue()
+            }
+            .setPositiveButton(R.string.notifications_turn_on) { dialog, _ ->
+                dialog.dismiss()
+                onContinue()
+                openNotificationSettings()
+            }
+            .show()
+    }
+
+    private fun openNotificationSettings() {
+        val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+            }
+        } else {
+            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.parse("package:$packageName")
+            }
+        }
+        startActivity(intent)
+    }
+
+    private fun shouldExitApp(): Boolean {
+        val now = SystemClock.elapsedRealtime()
+        return now - lastBackPressedAt <= BACK_PRESS_EXIT_WINDOW_MS
+    }
+
     companion object {
         private const val REQUEST_NOTIFICATION_PERMISSION = 1101
+        private const val BACK_PRESS_EXIT_WINDOW_MS = 2000L
     }
 }
