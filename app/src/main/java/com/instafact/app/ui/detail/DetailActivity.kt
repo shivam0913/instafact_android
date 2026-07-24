@@ -15,7 +15,9 @@ import com.instafact.app.data.model.DetailResponse
 import com.instafact.app.data.model.FeedbackType
 import com.instafact.app.databinding.ActivityDetailBinding
 import com.instafact.app.ui.login.LoginActivity
+import com.instafact.app.ui.webview.InAppBrowserActivity
 import com.instafact.app.utils.IntentExtras
+import com.instafact.app.utils.MarkdownRenderer
 import com.instafact.app.utils.UiState
 import com.instafact.app.utils.ViewModelFactory
 import com.instafact.app.utils.applySystemBarInsets
@@ -23,7 +25,6 @@ import com.instafact.app.utils.configureSystemBars
 import com.instafact.app.utils.displayConfidence
 import com.instafact.app.utils.displayVerdict
 import com.instafact.app.utils.ellipsized
-import com.instafact.app.utils.explanationAsBullets
 import com.instafact.app.utils.loadThumbnail
 import com.instafact.app.utils.platformIconRes
 import com.instafact.app.utils.platformSourceLabel
@@ -160,8 +161,11 @@ class DetailActivity : AppCompatActivity() {
         binding.verifiedChipTextView.text = getString(R.string.ai_verified)
         binding.checkedSourcesChipTextView.text = getString(R.string.checked_sources_count, detail.tags.size)
         binding.explanationTitleTextView.text = detail.verdict.verdictSectionTitle(this)
-        binding.explanationTextView.text =
-            (detail.explanation ?: getString(R.string.detail_result_pending)).explanationAsBullets()
+        MarkdownRenderer.render(
+            textView = binding.explanationTextView,
+            markdown = detail.explanation ?: getString(R.string.detail_result_pending),
+            onLinkClicked = { openInAppBrowser(it, getString(R.string.chat_source_title)) },
+        )
         renderTags(detail.tags)
         binding.askAiButton.visibility = if (detail.status.equals("completed", ignoreCase = true)) View.VISIBLE else View.GONE
         updateFeedbackButtons(viewModel.hasUserVoted(queryId))
@@ -212,6 +216,15 @@ class DetailActivity : AppCompatActivity() {
         val url = currentVideoUrl.ifBlank { binding.videoUrlTextView.text?.toString().orEmpty() }
         if (url.isBlank()) return
         startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+    }
+
+    private fun openInAppBrowser(url: String, title: String) {
+        startActivity(
+            Intent(this, InAppBrowserActivity::class.java).apply {
+                putExtra(IntentExtras.EXTRA_URL, url)
+                putExtra(IntentExtras.EXTRA_TITLE, title)
+            },
+        )
     }
 
     private fun updateFeedbackButtons(voted: Boolean, enabled: Boolean = !voted) {

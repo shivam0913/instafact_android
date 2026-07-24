@@ -115,7 +115,21 @@ class PreferenceManager(context: Context) {
             putString("${KEY_VIDEO_METADATA_CHANNEL_NAME}_$hashedKey", metadata.channelName)
             putString("${KEY_VIDEO_METADATA_CREATOR_ID}_$hashedKey", metadata.creatorId)
             putString("${KEY_VIDEO_METADATA_THUMBNAIL_URL}_$hashedKey", metadata.thumbnailUrl)
+            remove("${KEY_VIDEO_METADATA_MISS_TS}_$hashedKey")
         }
+    }
+
+    fun markVideoMetadataMiss(videoUrl: String) {
+        val hashedKey = hashKey(videoUrl)
+        sharedPreferences.edit {
+            putLong("${KEY_VIDEO_METADATA_MISS_TS}_$hashedKey", System.currentTimeMillis())
+        }
+    }
+
+    fun shouldRetryVideoMetadata(videoUrl: String, cooldownMillis: Long): Boolean {
+        val hashedKey = hashKey(videoUrl)
+        val lastMissAt = sharedPreferences.getLong("${KEY_VIDEO_METADATA_MISS_TS}_$hashedKey", 0L)
+        return lastMissAt <= 0L || (System.currentTimeMillis() - lastMissAt) >= cooldownMillis
     }
 
     fun getVideoMetadata(videoUrl: String): ClientVideoMetadata? {
@@ -158,5 +172,6 @@ class PreferenceManager(context: Context) {
         private const val KEY_VIDEO_METADATA_CHANNEL_NAME = "video_metadata_channel_name"
         private const val KEY_VIDEO_METADATA_CREATOR_ID = "video_metadata_creator_id"
         private const val KEY_VIDEO_METADATA_THUMBNAIL_URL = "video_metadata_thumbnail_url"
+        private const val KEY_VIDEO_METADATA_MISS_TS = "video_metadata_miss_ts"
     }
 }

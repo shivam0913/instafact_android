@@ -75,6 +75,10 @@ object SessionDebugLogger {
         Log.w(TAG, "[$source] metadata_fetch=failure, video_url=$videoUrl", throwable)
     }
 
+    fun logMetadataFetchSkipped(source: String, videoUrl: String, reason: String) {
+        Log.d(TAG, "[$source] metadata_fetch=skipped, video_url=$videoUrl, reason=$reason")
+    }
+
     fun logMetadataAttempt(
         source: String,
         requestUrl: String,

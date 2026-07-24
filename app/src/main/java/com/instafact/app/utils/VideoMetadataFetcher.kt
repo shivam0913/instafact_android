@@ -51,6 +51,7 @@ object VideoMetadataFetcher {
             .url("https://www.youtube.com/oembed?url=$encodedUrl&format=json")
             .get()
             .addHeader("User-Agent", USER_AGENT)
+            .addHeader("Accept", "application/json")
             .build()
 
         client.newCall(request).execute().use { response ->
@@ -78,24 +79,31 @@ object VideoMetadataFetcher {
                 .get()
                 .addHeader("User-Agent", USER_AGENT)
                 .addHeader("Accept-Language", "en-US,en;q=0.9")
+                .addHeader("Accept", "text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.8")
                 .addHeader("Referer", "https://www.instagram.com/")
+                .addHeader("Cache-Control", "no-cache")
+                .addHeader("Pragma", "no-cache")
                 .build()
 
             client.newCall(request).execute().use { response ->
-                val html = response.body?.string().orEmpty()
+                val body = response.body?.string().orEmpty()
                 SessionDebugLogger.logMetadataAttempt(
                     source = "VideoMetadataFetcher.fetchInstagramMetadata",
                     requestUrl = requestUrl,
                     finalUrl = response.request.url.toString(),
                     statusCode = response.code,
-                    bodySnippet = html.take(500).replace("\\s+".toRegex(), " ").trim(),
+                    bodySnippet = body.take(500).replace("\\s+".toRegex(), " ").trim(),
                 )
-                if (!response.isSuccessful || html.isBlank()) return@forEach
+                if (!response.isSuccessful || body.isBlank()) return@forEach
 
-                val title = extractInstagramTitle(html)
-                val channelName = extractInstagramCreatorName(html)
-                val creatorId = extractInstagramCreatorId(html) ?: channelName
-                val thumbnailUrl = extractInstagramThumbnail(html)
+                parseInstagramJsonMetadata(body)?.let { metadata ->
+                    return metadata
+                }
+
+                val title = extractInstagramTitle(body)
+                val channelName = extractInstagramCreatorName(body)
+                val creatorId = extractInstagramCreatorId(body) ?: channelName
+                val thumbnailUrl = extractInstagramThumbnail(body)
 
                 val metadata = ClientVideoMetadata(
                     title = title.takeUnless { it.isGenericInstagramText() },
@@ -156,9 +164,13 @@ object VideoMetadataFetcher {
             keys = listOf("og:image", "og:image:secure_url", "twitter:image", "twitter:image:src"),
         )
             ?: extractJsonLdString(html, listOf("thumbnailUrl", "image", "contentUrl"))
+            ?: extractJsonValue(html, "\"display_resources\"\\s*:\\s*\\[(?:[^\\]]*?\"src\"\\s*:\\s*\"([^\"]+)\")")
             ?: extractJsonValue(html, "\"thumbnail_url\"\\s*:\\s*\"([^\"]+)\"")
             ?: extractJsonValue(html, "\"thumbnail_src\"\\s*:\\s*\"([^\"]+)\"")
             ?: extractJsonValue(html, "\"display_url\"\\s*:\\s*\"([^\"]+)\"")
+            ?: extractJsonValue(html, "\"image_versions2\"\\s*:\\s*\\{[^}]*\"candidates\"\\s*:\\s*\\[(?:[^\\]]*?\"url\"\\s*:\\s*\"([^\"]+)\")")
+            ?: extractRegexValue(html, "<img[^>]+src=[\"']([^\"']+)[\"'][^>]*>")
+            ?: extractRegexValue(html, "<video[^>]+poster=[\"']([^\"']+)[\"'][^>]*>")
             ?: extractRegexValue(html, "(https?:\\\\?/\\\\?/[^\"'\\s>]+(?:cdninstagram|fbcdn)[^\"'\\s>]+)")
                 ?.replace("\\/", "/")
     }
@@ -258,10 +270,33 @@ object VideoMetadataFetcher {
     private fun buildInstagramCandidateUrls(videoUrl: String): List<String> {
         val normalized = normalizeVideoUrl(videoUrl).trimEnd('/')
         return listOf(
+            "$normalized/?__a=1&__d=dis",
             "$normalized/embed/captioned/",
             "$normalized/embed/",
             "$normalized/",
         ).distinct()
+    }
+
+    private fun parseInstagramJsonMetadata(body: String): ClientVideoMetadata? {
+        val trimmedBody = body.trim()
+        if (!trimmedBody.startsWith("{")) return null
+
+        val jsonObject = runCatching { JSONObject(trimmedBody) }.getOrNull() ?: return null
+        return ClientVideoMetadata(
+            title = findJsonPathValue(
+                jsonObject,
+                "items.caption.text",
+            ) ?: findJsonPathValue(jsonObject, "graphql.shortcode_media.edge_media_to_caption.edges.node.text")
+                ?: findJsonPathValue(jsonObject, "caption"),
+            channelName = findJsonPathValue(jsonObject, "items.user.username")
+                ?: findJsonPathValue(jsonObject, "author_name")
+                ?: findJsonPathValue(jsonObject, "graphql.shortcode_media.owner.username"),
+            creatorId = findJsonPathValue(jsonObject, "items.user.username")
+                ?: findJsonPathValue(jsonObject, "graphql.shortcode_media.owner.username"),
+            thumbnailUrl = findJsonPathValue(jsonObject, "items.image_versions2.candidates.url")
+                ?: findJsonPathValue(jsonObject, "graphql.shortcode_media.display_url")
+                ?: findJsonPathValue(jsonObject, "thumbnail_url"),
+        ).normalized()
     }
 
     private fun normalizeVideoUrl(videoUrl: String): String {

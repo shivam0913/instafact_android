@@ -32,6 +32,9 @@ class SubmissionRepository(
     private val preferenceManager: PreferenceManager,
 ) {
 
+    private val metadataFetchLock = Any()
+    private val metadataMissCooldownMillis = 6 * 60 * 60 * 1000L
+
     suspend fun getHistory(): Result<List<HistoryItemResponse>> = withContext(Dispatchers.IO) {
         runCatching {
             apiService.getHistory(requireUserId()).map { applyCachedMetadata(it) }
@@ -128,9 +131,8 @@ class SubmissionRepository(
 
     suspend fun submitVideo(videoUrl: String): Result<SubmitResponse> = withContext(Dispatchers.IO) {
         runCatching {
-            val metadata = VideoMetadataFetcher.fetch(videoUrl)
+            val metadata = resolveMetadata(videoUrl)
             SessionDebugLogger.logMetadataFetchResult("SubmissionRepository.submitVideo", videoUrl, metadata)
-            metadata?.let { preferenceManager.saveVideoMetadata(videoUrl, it) }
             apiService.submitVideo(
                 SubmitRequest(
                     userId = requireUserId(),
@@ -227,13 +229,39 @@ class SubmissionRepository(
     }
 
     private fun mergedMetadata(videoUrl: String): ClientVideoMetadata? {
-        val cachedMetadata = preferenceManager.getVideoMetadata(videoUrl)
-        if (cachedMetadata != null) {
-            return cachedMetadata
+        return resolveMetadata(videoUrl)
+    }
+
+    private fun resolveMetadata(videoUrl: String): ClientVideoMetadata? {
+        preferenceManager.getVideoMetadata(videoUrl)?.let { return it }
+        if (!preferenceManager.shouldRetryVideoMetadata(videoUrl, metadataMissCooldownMillis)) {
+            SessionDebugLogger.logMetadataFetchSkipped(
+                "SubmissionRepository.resolveMetadata",
+                videoUrl,
+                "recent_miss",
+            )
+            return null
         }
-        val fetchedMetadata = VideoMetadataFetcher.fetch(videoUrl) ?: return null
-        preferenceManager.saveVideoMetadata(videoUrl, fetchedMetadata)
-        return fetchedMetadata
+
+        return synchronized(metadataFetchLock) {
+            preferenceManager.getVideoMetadata(videoUrl)?.let { return@synchronized it }
+            if (!preferenceManager.shouldRetryVideoMetadata(videoUrl, metadataMissCooldownMillis)) {
+                SessionDebugLogger.logMetadataFetchSkipped(
+                    "SubmissionRepository.resolveMetadata",
+                    videoUrl,
+                    "recent_miss_after_lock",
+                )
+                return@synchronized null
+            }
+
+            val fetchedMetadata = VideoMetadataFetcher.fetch(videoUrl)
+            if (fetchedMetadata != null) {
+                preferenceManager.saveVideoMetadata(videoUrl, fetchedMetadata)
+            } else {
+                preferenceManager.markVideoMetadataMiss(videoUrl)
+            }
+            fetchedMetadata
+        }
     }
 
     private fun backfillMetadata(item: HistoryItemResponse): HistoryItemResponse {

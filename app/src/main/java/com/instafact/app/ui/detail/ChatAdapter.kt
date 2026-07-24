@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.instafact.app.R
 import com.instafact.app.data.model.ChatMessageItem
 import com.instafact.app.databinding.ItemChatMessageBinding
-import com.instafact.app.utils.setInAppLinkText
+import com.instafact.app.utils.MarkdownRenderer
 
 class ChatAdapter : ListAdapter<ChatMessageItem, ChatAdapter.ChatViewHolder>(DiffCallback) {
 
@@ -37,11 +37,7 @@ class ChatAdapter : ListAdapter<ChatMessageItem, ChatAdapter.ChatViewHolder>(Dif
             val isUser = item.role.equals("user", ignoreCase = true)
             val context = binding.root.context
             val listener = onLinkClicked
-            if (listener != null) {
-                binding.messageTextView.setInAppLinkText(item.content, listener)
-            } else {
-                binding.messageTextView.text = item.content
-            }
+            MarkdownRenderer.render(binding.messageTextView, item.content, listener)
             binding.roleTextView.text = if (isUser) "You" else "Instafact AI"
             val params = binding.messageCardView.layoutParams as ViewGroup.MarginLayoutParams
             if (isUser) {
