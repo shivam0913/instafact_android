@@ -4,10 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="12dp"
+    android:layout_marginTop="8dp"
     android:foreground="?attr/selectableItemBackground"
     app:cardBackgroundColor="@color/brand_surface"
-    app:cardCornerRadius="22dp"
+    app:cardCornerRadius="20dp"
     app:cardElevation="0dp"
     app:strokeColor="@color/brand_border"
     app:strokeWidth="1dp">
@@ -15,113 +15,294 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:padding="12dp">
-
-        <FrameLayout
-            android:layout_width="68dp"
-            android:layout_height="68dp"
-            android:background="@drawable/bg_media_placeholder">
-
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/thumbnailImageView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:contentDescription="@null"
-                android:scaleType="centerCrop"
-                app:shapeAppearanceOverlay="@style/InstafactShapeAppearanceThumbSmall"
-                tools:src="@drawable/ic_launcher" />
-
-            <ImageView
-                android:id="@+id/platformImageView"
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:layout_gravity="bottom|start"
-                android:layout_margin="8dp"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_instagram" />
-        </FrameLayout>
+        android:orientation="vertical">
 
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:gravity="top"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingTop="12dp"
+            android:paddingEnd="12dp">
 
-            <TextView
-                android:id="@+id/urlTextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:maxLines="2"
-                android:textColor="@color/brand_text"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                tools:text="Is eating ice at night bad for your throat?" />
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/mediaFrame"
+                android:layout_width="84dp"
+                android:layout_height="94dp"
+                app:cardBackgroundColor="@color/brand_surface"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp">
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/thumbnailImageView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_media_placeholder"
+                    android:contentDescription="@null"
+                    android:scaleType="centerCrop"
+                    tools:src="@drawable/ic_launcher" />
+
+                <TextView
+                    android:id="@+id/durationTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|end"
+                    android:layout_margin="8dp"
+                    android:background="@drawable/bg_media_duration"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:textColor="@color/white"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    tools:text="0:24"
+                    tools:visibility="visible" />
+            </com.google.android.material.card.MaterialCardView>
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:id="@+id/contentColumn"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginStart="9dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/urlTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:maxLines="2"
+                    android:textColor="@color/brand_text"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    tools:text="Drinking hot water burns fat and helps in weight loss" />
+
+                <LinearLayout
+                    android:id="@+id/sourceRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:id="@+id/sourceIconImageView"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_instagram" />
+
+                    <TextView
+                        android:id="@+id/sourceTextView"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textColor="@color/brand_muted"
+                        android:textSize="8.5sp"
+                        tools:text="instagram.com/reel/C8abc..." />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/verdictChipContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="24dp"
+                    android:layout_marginTop="7dp"
+                    android:background="@drawable/bg_chip_primary"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="10dp">
+
+                    <ImageView
+                        android:id="@+id/verdictIconImageView"
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_verdict_true_outline" />
+
+                    <TextView
+                        android:id="@+id/verdictTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:textColor="@color/brand_primary"
+                        android:textSize="9sp"
+                        android:textStyle="bold"
+                        tools:text="Mostly True" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/metaRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="7dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:id="@+id/checksIconImageView"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_eye_outline"
+                        app:tint="@color/brand_muted" />
+
+                    <TextView
+                        android:id="@+id/countTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:textColor="@color/brand_muted"
+                        android:textSize="8.5sp"
+                        tools:text="12.4K fact-checks" />
+
+                    <TextView
+                        android:id="@+id/metaDividerTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="6dp"
+                        android:text="•"
+                        android:textColor="@color/brand_muted"
+                        android:textSize="8.5sp" />
+
+                    <TextView
+                        android:id="@+id/statusTextView"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textColor="@color/brand_muted"
+                        android:textSize="8.5sp"
+                        tools:text="Checked 2h ago" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/actionsColumn"
+                android:layout_width="20dp"
+                android:layout_height="94dp"
+                android:gravity="top|center_horizontal"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:id="@+id/moreButton"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="@string/more"
+                    android:padding="0dp"
+                    android:src="@drawable/ic_more_vertical"
+                    app:tint="@color/brand_text" />
+
+                <ImageButton
+                    android:id="@+id/bookmarkButton"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginTop="20dp"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="@string/bookmark"
+                    android:padding="0dp"
+                    android:src="@drawable/ic_bookmark_outline"
+                    app:tint="@color/brand_primary" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:background="@color/brand_divider" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:id="@+id/helpfulPromptTextView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/home_helpful_prompt"
+                android:textColor="@color/brand_text"
+                android:textSize="10sp" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <ImageView
-                    android:id="@+id/sourceIconImageView"
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_instagram" />
-
-                <TextView
-                    android:id="@+id/sourceTextView"
+                <LinearLayout
+                    android:id="@+id/helpfulActionLayout"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:textColor="@color/brand_muted"
-                    android:textSize="11sp"
-                    tools:text="YouTube" />
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="2dp"
+                    android:paddingVertical="2dp">
+
+                    <ImageView
+                        android:id="@+id/helpfulIconImageView"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_helpful_outline"
+                        app:tint="@color/brand_muted" />
+
+                    <TextView
+                        android:id="@+id/helpfulCountTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:textColor="@color/brand_muted"
+                        android:textSize="10sp"
+                        tools:text="128" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/notHelpfulActionLayout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="2dp"
+                    android:paddingVertical="2dp">
+
+                    <ImageView
+                        android:id="@+id/notHelpfulIconImageView"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_not_helpful_outline"
+                        app:tint="@color/brand_muted" />
+
+                    <TextView
+                        android:id="@+id/notHelpfulCountTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:textColor="@color/brand_muted"
+                        android:textSize="10sp"
+                        tools:text="16" />
+                </LinearLayout>
             </LinearLayout>
-
-            <TextView
-                android:id="@+id/countTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="18dp"
-                android:layout_marginTop="2dp"
-                android:textColor="@color/brand_muted"
-                android:textSize="11sp"
-                tools:text="2 checks" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="end"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/verdictTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_chip_primary"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="6dp"
-                android:textColor="@color/brand_primary"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                tools:text="True" />
-
-            <TextView
-                android:id="@+id/statusTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textColor="@color/brand_primary"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                tools:text="92%" />
         </LinearLayout>
     </LinearLayout>
 

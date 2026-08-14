@@ -15,8 +15,11 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.GravityCompat
 import androidx.core.app.NotificationManagerCompat
+import android.widget.ImageView
+import android.widget.TextView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.instafact.app.InstafactApplication
 import com.instafact.app.R
@@ -67,7 +70,7 @@ class HomeActivity : AppCompatActivity() {
             lightStatusBar = true,
         )
         binding.contentRoot.applySystemBarInsets(applyTop = true)
-        binding.bottomNavigationView.applySystemBarInsets(applyBottom = true)
+        binding.customBottomNavCard.applySystemBarInsets(applyBottom = true)
 
         setupDrawer()
         setupBottomNavigation()
@@ -76,7 +79,7 @@ class HomeActivity : AppCompatActivity() {
         maybeRequestNotificationPermission()
 
         if (savedInstanceState == null) {
-            switchTab(R.id.menu_home)
+            switchTab(resolveInitialTab(intent))
             handleIncomingSharedUrl(intent)
         }
     }
@@ -93,7 +96,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     fun navigateToProfileTab() {
-        binding.bottomNavigationView.selectedItemId = R.id.menu_profile
+        switchTab(R.id.menu_profile)
     }
 
     fun submitVideoUrl(videoUrl: String) {
@@ -110,7 +113,7 @@ class HomeActivity : AppCompatActivity() {
         binding.navigationView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.menu_home, R.id.menu_explore, R.id.menu_profile -> {
-                    binding.bottomNavigationView.selectedItemId = item.itemId
+                    switchTab(item.itemId)
                 }
 
                 R.id.menu_connect_instagram -> openInstagram()
@@ -123,10 +126,9 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNavigation() {
-        binding.bottomNavigationView.setOnItemSelectedListener { item ->
-            switchTab(item.itemId)
-            true
-        }
+        binding.navHomeItem.setOnClickListener { switchTab(R.id.menu_home) }
+        binding.navExploreItem.setOnClickListener { switchTab(R.id.menu_explore) }
+        binding.navProfileItem.setOnClickListener { switchTab(R.id.menu_profile) }
     }
 
     private fun setupBackPressHandling() {
@@ -140,7 +142,7 @@ class HomeActivity : AppCompatActivity() {
                         }
 
                         selectedTabId != R.id.menu_home -> {
-                            binding.bottomNavigationView.selectedItemId = R.id.menu_home
+                            switchTab(R.id.menu_home)
                         }
 
                         shouldExitApp() -> {
@@ -173,7 +175,7 @@ class HomeActivity : AppCompatActivity() {
                 is UiState.Success -> {
                     binding.shareStatusCard.visibility = View.GONE
                     Toast.makeText(this, getString(R.string.submission_success), Toast.LENGTH_SHORT).show()
-                    binding.bottomNavigationView.selectedItemId = R.id.menu_home
+                    switchTab(R.id.menu_home)
                     viewModel.loadHistory()
                     viewModel.loadExplore()
                     viewModel.resetSubmitState()
@@ -200,6 +202,7 @@ class HomeActivity : AppCompatActivity() {
     private fun switchTab(itemId: Int) {
         selectedTabId = itemId
         binding.navigationView.setCheckedItem(itemId)
+        updateBottomNavSelection(itemId)
 
         val fragment = when (itemId) {
             R.id.menu_explore -> ExploreFragment()
@@ -209,6 +212,58 @@ class HomeActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, fragment)
             .commit()
+    }
+
+    private fun updateBottomNavSelection(itemId: Int) {
+        updateNavItem(
+            isSelected = itemId == R.id.menu_home,
+            icon = binding.navHomeIcon,
+            iconBackground = binding.navHomeIconBg,
+            label = binding.navHomeLabel,
+            selectedIconRes = R.drawable.ic_home_outline,
+            unselectedIconRes = R.drawable.ic_home_outline,
+        )
+        updateNavItem(
+            isSelected = itemId == R.id.menu_explore,
+            icon = binding.navExploreIcon,
+            iconBackground = binding.navExploreIconBg,
+            label = binding.navExploreLabel,
+            selectedIconRes = R.drawable.ic_explore_tab,
+            unselectedIconRes = R.drawable.ic_explore_tab,
+        )
+        updateNavItem(
+            isSelected = itemId == R.id.menu_profile,
+            icon = binding.navProfileIcon,
+            iconBackground = binding.navProfileIconBg,
+            label = binding.navProfileLabel,
+            selectedIconRes = R.drawable.ic_profile_outline,
+            unselectedIconRes = R.drawable.ic_profile_outline,
+        )
+    }
+
+    private fun updateNavItem(
+        isSelected: Boolean,
+        icon: ImageView,
+        iconBackground: View,
+        label: TextView,
+        selectedIconRes: Int,
+        unselectedIconRes: Int,
+    ) {
+        icon.setImageResource(if (isSelected) selectedIconRes else unselectedIconRes)
+        icon.setColorFilter(
+            ContextCompat.getColor(
+                this,
+                if (isSelected) R.color.brand_primary else R.color.brand_muted,
+            ),
+        )
+        iconBackground.setBackgroundResource(android.R.color.transparent)
+        label.setTextColor(
+            ContextCompat.getColor(
+                this,
+                if (isSelected) R.color.brand_primary else R.color.brand_muted,
+            ),
+        )
+        label.typeface = ResourcesCompat.getFont(this, R.font.inter)
     }
 
     private fun refreshCurrentTab() {
@@ -260,6 +315,15 @@ class HomeActivity : AppCompatActivity() {
 
             else -> null
         }?.takeIf { it.isNotBlank() }
+    }
+
+    private fun resolveInitialTab(intent: Intent): Int {
+        return when (intent.getStringExtra(IntentExtras.EXTRA_DEFAULT_TAB)?.lowercase()) {
+            IntentExtras.TAB_EXPLORE -> R.id.menu_explore
+            IntentExtras.TAB_PROFILE -> R.id.menu_profile
+            IntentExtras.TAB_HOME -> R.id.menu_home
+            else -> R.id.menu_home
+        }
     }
 
     private fun maybeRequestNotificationPermission() {

@@ -7,6 +7,7 @@ import com.instafact.app.data.api.ApiService
 import com.instafact.app.data.model.ChatHistoryResponse
 import com.instafact.app.data.model.ChatMessageRequest
 import com.instafact.app.data.model.ChatMessageResponse
+import com.instafact.app.data.model.DeleteHistoryResponse
 import com.instafact.app.data.model.DetailResponse
 import com.instafact.app.data.model.ExploreItemResponse
 import com.instafact.app.data.model.FeedbackRequest
@@ -167,11 +168,13 @@ class SubmissionRepository(
         }.fold(
             onSuccess = {
                 preferenceManager.markQueryAsVoted(queryId)
+                preferenceManager.saveUserVoteType(queryId, feedbackType.name.lowercase())
                 Result.success(it)
             },
             onFailure = { throwable ->
                 if (throwable is HttpException && throwable.code() == 409) {
                     preferenceManager.markQueryAsVoted(queryId)
+                    preferenceManager.saveUserVoteType(queryId, feedbackType.name.lowercase())
                     Result.failure(IllegalStateException(context.getString(R.string.already_voted)))
                 } else {
                     Result.failure(Exception(ApiErrorParser.getMessage(context, throwable), throwable))
@@ -180,7 +183,21 @@ class SubmissionRepository(
         )
     }
 
+    suspend fun deleteHistory(queryId: Int): Result<DeleteHistoryResponse> = withContext(Dispatchers.IO) {
+        runCatching {
+            apiService.deleteHistory(
+                queryId = queryId,
+                userId = requireUserId(),
+            )
+        }.fold(
+            onSuccess = { Result.success(it) },
+            onFailure = { Result.failure(Exception(ApiErrorParser.getMessage(context, it), it)) },
+        )
+    }
+
     fun hasVoted(queryId: Int): Boolean = preferenceManager.hasUserVoted(queryId)
+
+    fun getUserVoteType(queryId: Int): String? = preferenceManager.getUserVoteType(queryId)
 
     fun getUserId(): Int? = preferenceManager.getUserId()
 

@@ -97,4 +97,18 @@ object SessionDebugLogger {
             },
         )
     }
+
+    fun logProfileImageLoad(source: String, imageUrl: String?, status: String, detail: String? = null) {
+        Log.d(
+            TAG,
+            buildString {
+                append("[").append(source).append("] ")
+                append("profile_image_load=").append(status).append(", ")
+                append("image_url=").append(imageUrl)
+                if (!detail.isNullOrBlank()) {
+                    append(", detail=").append(detail)
+                }
+            },
+        )
+    }
 }

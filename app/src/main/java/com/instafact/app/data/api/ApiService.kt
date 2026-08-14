@@ -3,6 +3,7 @@ package com.instafact.app.data.api
 import com.instafact.app.data.model.ChatHistoryResponse
 import com.instafact.app.data.model.ChatMessageRequest
 import com.instafact.app.data.model.ChatMessageResponse
+import com.instafact.app.data.model.DeleteHistoryResponse
 import com.instafact.app.data.model.DetailResponse
 import com.instafact.app.data.model.ExploreItemResponse
 import com.instafact.app.data.model.FeedbackRequest
@@ -22,6 +23,7 @@ import com.instafact.app.data.model.UserProfileUpdateRequest
 import com.instafact.app.data.model.UserRegisterRequest
 import com.instafact.app.data.model.UserRegisterResponse
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -77,6 +79,12 @@ interface ApiService {
     suspend fun getHistory(
         @Query("user_id") userId: Int,
     ): List<HistoryItemResponse>
+
+    @DELETE("history/{id}")
+    suspend fun deleteHistory(
+        @Path("id") queryId: Int,
+        @Query("user_id") userId: Int,
+    ): DeleteHistoryResponse
 
     @GET("detail/{id}")
     suspend fun getDetail(

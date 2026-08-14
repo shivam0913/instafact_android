@@ -8,8 +8,8 @@
     <color name="brand_secondary">@color/theme_secondary</color>
     <color name="brand_coral">#FF705B</color>
     <color name="brand_accent">#8E7BFF</color>
-    <color name="brand_text">#171B2C</color>
-    <color name="brand_muted">#8B8FA5</color>
+    <color name="brand_text">#374151</color>
+    <color name="brand_muted">#6B7280</color>
     <color name="brand_background">#F7F8FE</color>
     <color name="brand_surface">#FFFFFF</color>
     <color name="brand_border">#ECECF5</color>

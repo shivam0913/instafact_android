@@ -1,8 +1,15 @@
 package com.instafact.app.ui.profile
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +17,7 @@ import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
@@ -17,6 +25,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import coil.load
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.instafact.app.BuildConfig
 import com.instafact.app.InstafactApplication
 import com.instafact.app.R
 import com.instafact.app.data.model.UserProfileResponse
@@ -25,6 +34,7 @@ import com.instafact.app.databinding.DialogEditProfileBinding
 import com.instafact.app.databinding.FragmentProfileBinding
 import com.instafact.app.ui.support.HelpSupportActivity
 import com.instafact.app.ui.splash.SplashActivity
+import com.instafact.app.utils.SessionDebugLogger
 import com.instafact.app.utils.UiState
 import com.instafact.app.utils.ViewModelFactory
 import com.instafact.app.viewmodel.ProfileViewModel
@@ -72,7 +82,9 @@ class ProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        renderBrand()
         renderFallbackProfile()
+        binding.versionTextView.text = getString(R.string.app_version_format, BuildConfig.VERSION_NAME)
 
         binding.shareFriendsButton.setOnClickListener {
             startActivity(
@@ -88,30 +100,13 @@ class ProfileFragment : Fragment() {
                 ),
             )
         }
-        binding.writeToUsButton.setOnClickListener {
-            val emailIntent = Intent(
-                Intent.ACTION_SENDTO,
-                Uri.parse("mailto:connect@instafact.co"),
-            ).apply {
-                putExtra(Intent.EXTRA_SUBJECT, getString(R.string.write_to_us_subject))
-            }
-            runCatching {
-                startActivity(
-                    Intent.createChooser(
-                        emailIntent,
-                        getString(R.string.write_to_us),
-                    ),
-                )
-            }.onFailure {
-                Toast.makeText(requireContext(), getString(R.string.no_email_app), Toast.LENGTH_SHORT).show()
-            }
-        }
         binding.helpSupportButton.setOnClickListener {
             startActivity(Intent(requireContext(), HelpSupportActivity::class.java))
         }
         binding.privacyButton.setOnClickListener {
             showPrivacyPolicyDialog()
         }
+        binding.rateUsButton.setOnClickListener { openAppRating() }
         binding.logoutButton.setOnClickListener {
             viewModel.logout()
             Toast.makeText(requireContext(), getString(R.string.logged_out), Toast.LENGTH_SHORT).show()
@@ -124,6 +119,9 @@ class ProfileFragment : Fragment() {
         }
         binding.profileRetryButton.setOnClickListener { viewModel.loadProfile() }
         binding.editProfileButton.setOnClickListener { showEditProfileDialog() }
+        binding.profilePhotoButton.setOnClickListener { showEditProfileDialog() }
+        binding.notificationButton.setOnClickListener { openNotificationSettings() }
+        binding.copyReferralButton.setOnClickListener { copyReferralCode() }
 
         observeProfile()
         viewModel.loadProfile()
@@ -207,39 +205,77 @@ class ProfileFragment : Fragment() {
         }
     }
 
+    private fun renderBrand() {
+        val brand = getString(R.string.app_name)
+        val span = SpannableString(brand)
+        val splitIndex = brand.indexOf("Fact")
+        if (splitIndex in 1 until brand.length) {
+            span.setSpan(
+                ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.brand_primary)),
+                splitIndex,
+                brand.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+            )
+        }
+        binding.brandTextView.text = span
+    }
+
     private fun renderFallbackProfile() {
         val phoneNumber = viewModel.getPhoneNumber().orEmpty()
         binding.displayNameTextView.text = getString(R.string.profile_display_name)
-        binding.handleTextView.text = getString(R.string.profile_handle)
         binding.avatarTextView.text = binding.displayNameTextView.text.firstOrNull()?.uppercase() ?: "I"
+        binding.avatarTextView.isVisible = true
         binding.avatarImageView.load(null)
-        binding.nameValueTextView.text = getString(R.string.profile_not_set)
         binding.genderValueTextView.text = getString(R.string.profile_not_set)
         binding.ageGroupValueTextView.text = getString(R.string.profile_not_set)
         binding.phoneValueTextView.text = phoneNumber.ifBlank { "-" }
-        binding.factChecksValueTextView.text = "0"
-        binding.memberSinceValueTextView.text = getString(R.string.profile_unknown_member_since)
         binding.referralCodeValueTextView.text = "-"
-        binding.referralCodeDetailsValueTextView.text = "-"
+        binding.genderIconImageView.setImageResource(R.drawable.ic_profile_outline)
     }
 
     private fun bindProfile(profile: UserProfileResponse) {
         val displayName = profile.name?.takeIf { it.isNotBlank() } ?: profile.phoneNumber
         binding.displayNameTextView.text = displayName
-        binding.handleTextView.text = "@${profile.referralCode.lowercase(Locale.US)}"
         binding.avatarTextView.text = displayName.firstOrNull()?.uppercase() ?: "I"
-        binding.avatarImageView.load(profile.profileImageUrl) {
+        val imageUrl = profile.profileImageUrl?.takeIf { it.isNotBlank() }
+        binding.avatarTextView.isVisible = imageUrl.isNullOrBlank()
+        SessionDebugLogger.logProfileImageLoad("ProfileFragment.bindProfile", imageUrl, "start")
+        binding.avatarImageView.load(imageUrl) {
             crossfade(true)
+            allowHardware(false)
+            listener(
+                onStart = {
+                    binding.avatarTextView.isVisible = imageUrl.isNullOrBlank()
+                    SessionDebugLogger.logProfileImageLoad(
+                        "ProfileFragment.bindProfile",
+                        imageUrl,
+                        "request_started",
+                    )
+                },
+                onSuccess = { _, _ ->
+                    binding.avatarTextView.isVisible = false
+                    SessionDebugLogger.logProfileImageLoad(
+                        "ProfileFragment.bindProfile",
+                        imageUrl,
+                        "success",
+                    )
+                },
+                onError = { _, result ->
+                    binding.avatarTextView.isVisible = true
+                    SessionDebugLogger.logProfileImageLoad(
+                        "ProfileFragment.bindProfile",
+                        imageUrl,
+                        "error",
+                        result.throwable.message,
+                    )
+                },
+            )
         }
-        binding.avatarTextView.isVisible = profile.profileImageUrl.isNullOrBlank()
-        binding.nameValueTextView.text = profile.name?.takeIf { it.isNotBlank() } ?: getString(R.string.profile_not_set)
         binding.genderValueTextView.text = profile.gender.toDisplayLabel()
-        binding.ageGroupValueTextView.text = profile.ageGroup.toDisplayLabel()
+        binding.ageGroupValueTextView.text = profile.ageGroup.toAgeGroupWithSuffix()
         binding.phoneValueTextView.text = profile.phoneNumber
-        binding.factChecksValueTextView.text = profile.factCheckedContentCount.toString()
-        binding.memberSinceValueTextView.text = formatMemberSince(profile.memberSince)
         binding.referralCodeValueTextView.text = profile.referralCode
-        binding.referralCodeDetailsValueTextView.text = profile.referralCode
+        binding.genderIconImageView.setImageResource(genderIcon(profile.gender))
     }
 
     private fun showEditProfileDialog() {
@@ -356,6 +392,50 @@ class ProfileFragment : Fragment() {
         }
     }
 
+    private fun genderIcon(gender: String?): Int {
+        return when (gender) {
+            "male" -> R.drawable.ic_gender_male
+            "female" -> R.drawable.ic_gender_female
+            else -> R.drawable.ic_profile_outline
+        }
+    }
+
+    private fun copyReferralCode() {
+        val referralCode = latestProfile?.referralCode?.takeIf { it.isNotBlank() }
+            ?: binding.referralCodeValueTextView.text?.toString().orEmpty().takeIf { it.isNotBlank() }
+        if (referralCode.isNullOrBlank()) return
+        val clipboardManager = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboardManager.setPrimaryClip(ClipData.newPlainText(getString(R.string.profile_referral_code), referralCode))
+        Toast.makeText(requireContext(), getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
+    }
+
+    private fun openNotificationSettings() {
+        val context = requireContext()
+        val intent = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+            }
+        } else {
+            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.fromParts("package", context.packageName, null)
+            }
+        }
+        startActivity(intent)
+    }
+
+    private fun openAppRating() {
+        val packageName = requireContext().packageName
+        val marketIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName"))
+        val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$packageName"))
+        runCatching {
+            startActivity(marketIntent)
+        }.recoverCatching {
+            startActivity(webIntent)
+        }.onFailure {
+            Toast.makeText(requireContext(), getString(R.string.play_store_unavailable), Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun showPrivacyPolicyDialog() {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.privacy_policy_title)
@@ -369,12 +449,48 @@ class ProfileFragment : Fragment() {
     }
 
     private fun renderEditProfilePhoto(dialogBinding: DialogEditProfileBinding, imageUrl: String?) {
-        dialogBinding.profilePhotoPreviewImageView.load(imageUrl) {
+        val safeImageUrl = imageUrl?.takeIf { it.isNotBlank() }
+        val initial = dialogBinding.nameEditText.text?.toString()?.trim()?.firstOrNull()?.uppercase() ?: "I"
+
+        dialogBinding.profilePhotoInitialTextView.text = initial
+        dialogBinding.profilePhotoInitialTextView.isVisible = safeImageUrl.isNullOrBlank()
+
+        SessionDebugLogger.logProfileImageLoad(
+            "ProfileFragment.renderEditProfilePhoto",
+            safeImageUrl,
+            "start",
+        )
+
+        dialogBinding.profilePhotoPreviewImageView.load(safeImageUrl) {
             crossfade(true)
+            allowHardware(false)
+            listener(
+                onStart = {
+                    SessionDebugLogger.logProfileImageLoad(
+                        "ProfileFragment.renderEditProfilePhoto",
+                        safeImageUrl,
+                        "request_started",
+                    )
+                },
+                onSuccess = { _, _ ->
+                    dialogBinding.profilePhotoInitialTextView.isVisible = false
+                    SessionDebugLogger.logProfileImageLoad(
+                        "ProfileFragment.renderEditProfilePhoto",
+                        safeImageUrl,
+                        "success",
+                    )
+                },
+                onError = { _, result ->
+                    dialogBinding.profilePhotoInitialTextView.isVisible = true
+                    SessionDebugLogger.logProfileImageLoad(
+                        "ProfileFragment.renderEditProfilePhoto",
+                        safeImageUrl,
+                        "error",
+                        result.throwable.message,
+                    )
+                },
+            )
         }
-        dialogBinding.profilePhotoInitialTextView.isVisible = imageUrl.isNullOrBlank()
-        dialogBinding.profilePhotoInitialTextView.text =
-            dialogBinding.nameEditText.text?.toString()?.trim()?.firstOrNull()?.uppercase() ?: "I"
     }
 
     private fun applyGenderSelection(dialogBinding: DialogEditProfileBinding, gender: String?) {
@@ -462,6 +578,15 @@ class ProfileFragment : Fragment() {
             "45_54" -> "45-54"
             "55_plus" -> "55+"
             else -> getString(R.string.profile_not_set)
+        }
+    }
+
+    private fun String?.toAgeGroupWithSuffix(): String {
+        val baseLabel = this.toDisplayLabel()
+        return if (baseLabel == getString(R.string.profile_not_set)) {
+            baseLabel
+        } else {
+            "$baseLabel years"
         }
     }
 

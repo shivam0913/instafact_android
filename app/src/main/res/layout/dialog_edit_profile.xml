@@ -47,17 +47,17 @@
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="22dp">
 
-            <com.google.android.material.imageview.ShapeableImageView
+            <ImageView
                 android:id="@+id/profilePhotoPreviewImageView"
                 android:layout_width="108dp"
                 android:layout_height="108dp"
                 android:layout_gravity="center"
-                android:background="@drawable/bg_media_placeholder"
+                android:background="@drawable/bg_light_icon_circle"
+                android:clipToOutline="true"
                 android:contentDescription="@string/profile_photo_preview"
+                android:outlineProvider="background"
                 android:scaleType="centerCrop"
-                app:shapeAppearanceOverlay="@style/InstafactShapeAppearanceAvatarCircle"
-                app:strokeColor="@color/brand_primary"
-                app:strokeWidth="2dp" />
+                />
 
             <TextView
                 android:id="@+id/profilePhotoInitialTextView"

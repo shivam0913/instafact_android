@@ -12,6 +12,10 @@
         <item name="colorSurfaceVariant">@color/brand_search_background</item>
         <item name="colorOutline">@color/brand_border</item>
         <item name="colorOnSurface">@color/brand_text</item>
+        <item name="android:textColorPrimary">@color/brand_text</item>
+        <item name="android:textColorSecondary">@color/brand_muted</item>
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="fontFamily">@font/inter</item>
         <item name="android:colorBackground">@color/brand_background</item>
         <item name="android:windowBackground">@color/brand_background</item>
         <item name="android:statusBarColor">@color/brand_surface</item>

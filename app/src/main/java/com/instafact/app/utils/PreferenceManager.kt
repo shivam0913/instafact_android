@@ -68,6 +68,7 @@ class PreferenceManager(context: Context) {
             remove(KEY_PROFILE_NAME)
             remove(KEY_PROFILE_IMAGE_URL)
             remove(KEY_VOTED_QUERY_IDS)
+            remove(KEY_VOTE_TYPES)
             if (fcmToken != null) {
                 putString(KEY_FCM_TOKEN, fcmToken)
             }
@@ -106,6 +107,31 @@ class PreferenceManager(context: Context) {
         sharedPreferences.edit {
             putStringSet(KEY_VOTED_QUERY_IDS, updatedVotes)
         }
+    }
+
+    fun saveUserVoteType(queryId: Int, voteType: String) {
+        val updatedMap = getUserVoteTypes().toMutableMap()
+        updatedMap[queryId.toString()] = voteType
+        sharedPreferences.edit {
+            putString(KEY_VOTE_TYPES, updatedMap.entries.joinToString(separator = ",") { "${it.key}:${it.value}" })
+        }
+    }
+
+    fun getUserVoteType(queryId: Int): String? = getUserVoteTypes()[queryId.toString()]
+
+    private fun getUserVoteTypes(): Map<String, String> {
+        val encoded = sharedPreferences.getString(KEY_VOTE_TYPES, null).orEmpty()
+        if (encoded.isBlank()) return emptyMap()
+        return encoded.split(",")
+            .mapNotNull { entry ->
+                val parts = entry.split(":", limit = 2)
+                if (parts.size == 2 && parts[0].isNotBlank() && parts[1].isNotBlank()) {
+                    parts[0] to parts[1]
+                } else {
+                    null
+                }
+            }
+            .toMap()
     }
 
     fun saveVideoMetadata(videoUrl: String, metadata: ClientVideoMetadata) {
@@ -168,6 +194,7 @@ class PreferenceManager(context: Context) {
         private const val KEY_PROFILE_IMAGE_URL = "profile_image_url"
         private const val KEY_FCM_TOKEN = "fcm_token"
         private const val KEY_VOTED_QUERY_IDS = "voted_query_ids"
+        private const val KEY_VOTE_TYPES = "vote_types"
         private const val KEY_VIDEO_METADATA_TITLE = "video_metadata_title"
         private const val KEY_VIDEO_METADATA_CHANNEL_NAME = "video_metadata_channel_name"
         private const val KEY_VIDEO_METADATA_CREATOR_ID = "video_metadata_creator_id"

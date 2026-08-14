@@ -1,10 +1,14 @@
 <resources>
     <style name="TextAppearance.Instafact.BottomNav.Active" parent="TextAppearance.Material3.LabelSmall">
-        <item name="android:textSize">10sp</item>
+        <item name="android:textSize">9sp</item>
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="fontFamily">@font/inter</item>
     </style>
 
     <style name="TextAppearance.Instafact.BottomNav.Inactive" parent="TextAppearance.Material3.LabelSmall">
-        <item name="android:textSize">10sp</item>
+        <item name="android:textSize">9sp</item>
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="fontFamily">@font/inter</item>
     </style>
 
     <style name="InstafactShapeAppearanceThumbSmall">

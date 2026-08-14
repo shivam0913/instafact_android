@@ -32,10 +32,17 @@ object VideoMetadataFetcher {
         val normalizedUrl = normalizeVideoUrl(videoUrl)
         val host = Uri.parse(normalizedUrl).host?.lowercase().orEmpty()
         SessionDebugLogger.logMetadataFetchStart("VideoMetadataFetcher.fetch", videoUrl)
+        if (host.contains("instagram.com")) {
+            SessionDebugLogger.logMetadataFetchSkipped(
+                "VideoMetadataFetcher.fetch",
+                videoUrl,
+                "instagram_metadata_handled_by_backend",
+            )
+            return null
+        }
         return runCatching {
             when {
                 host == "youtu.be" || host.contains("youtube.com") -> fetchYouTubeMetadata(normalizedUrl)
-                host.contains("instagram.com") -> fetchInstagramMetadata(normalizedUrl)
                 else -> null
             }?.normalized()
         }.onSuccess { metadata ->
@@ -315,6 +322,7 @@ object VideoMetadataFetcher {
         val normalizedChannelName = channelName.cleanMetadataValue()
         val normalizedCreatorId = creatorId.cleanMetadataValue()
         val normalizedThumbnailUrl = thumbnailUrl.cleanMetadataValue()
+            ?.takeIf { it.isAcceptableRemoteUrl() }
 
         if (
             normalizedTitle == null &&
@@ -358,6 +366,13 @@ object VideoMetadataFetcher {
             value.contains("/favicon") ||
             value.contains("apple-touch-icon") ||
             value.contains("instagram.com/static/images")
+    }
+
+    private fun String.isAcceptableRemoteUrl(): Boolean {
+        val uri = runCatching { Uri.parse(this) }.getOrNull() ?: return false
+        val scheme = uri.scheme?.lowercase().orEmpty()
+        if (scheme != "http" && scheme != "https") return false
+        return length <= 2083
     }
 
     private fun String.nullIfBlank(): String? = if (isBlank()) null else this
