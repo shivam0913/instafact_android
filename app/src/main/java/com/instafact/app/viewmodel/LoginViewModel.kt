@@ -8,6 +8,8 @@ import com.instafact.app.data.repository.AuthRepository
 import com.instafact.app.data.repository.ProfileRepository
 import com.instafact.app.data.model.UserProfileResponse
 import com.instafact.app.data.model.UserProfileUpdateRequest
+import com.instafact.app.utils.Countries
+import com.instafact.app.utils.Country
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -19,6 +21,7 @@ enum class LoginStep {
 
 data class LoginUiModel(
     val step: LoginStep = LoginStep.PHONE,
+    val country: Country = Countries.default(),
     val phoneNumber: String = "",
     val infoMessage: String? = null,
     val errorMessage: String? = null,
@@ -47,13 +50,33 @@ class LoginViewModel(
 
     private var countdownJob: Job? = null
 
+    fun selectCountry(country: Country) {
+        _uiState.value = _uiState.value?.copy(country = country, errorMessage = null)
+    }
+
+    /** Null when the number is acceptable for the selected country, else the reason. */
+    fun validatePhoneNumber(rawPhoneNumber: String, country: Country): String? {
+        val digits = rawPhoneNumber.filter { it.isDigit() }
+        val expected = country.nationalLength
+        return when {
+            digits.isEmpty() -> "Enter your mobile number."
+            expected != null && digits.length != expected ->
+                "Enter a valid $expected-digit number for ${country.name}."
+            expected == null && digits.length !in Countries.FALLBACK_LENGTH_RANGE ->
+                "Enter a valid mobile number for ${country.name}."
+            else -> null
+        }
+    }
+
     fun requestOtp(rawPhoneNumber: String) {
-        val phoneNumber = rawPhoneNumber.trim()
-        if (phoneNumber.length < MIN_PHONE_LENGTH) {
+        val country = _uiState.value?.country ?: Countries.default()
+        val phoneNumber = rawPhoneNumber.filter { it.isDigit() }
+        val validationError = validatePhoneNumber(phoneNumber, country)
+        if (validationError != null) {
             _uiState.value = _uiState.value?.copy(
                 step = LoginStep.PHONE,
                 phoneNumber = phoneNumber,
-                errorMessage = "Enter a valid phone number.",
+                errorMessage = validationError,
                 infoMessage = null,
                 isLoading = false,
             )
@@ -68,7 +91,7 @@ class LoginViewModel(
             isLoading = true,
         )
         viewModelScope.launch {
-            authRepository.requestOtp(phoneNumber)
+            authRepository.requestOtp(phoneNumber, country.dialCode)
                 .onSuccess {
                     startOtpStep(phoneNumber, it.message)
                 }
@@ -84,8 +107,9 @@ class LoginViewModel(
     }
 
     fun resendOtp() {
+        val country = _uiState.value?.country ?: Countries.default()
         val phoneNumber = _uiState.value?.phoneNumber?.trim().orEmpty()
-        if (phoneNumber.length < MIN_PHONE_LENGTH) {
+        if (validatePhoneNumber(phoneNumber, country) != null) {
             _uiState.value = _uiState.value?.copy(
                 step = LoginStep.PHONE,
                 errorMessage = "Enter a valid phone number.",
@@ -98,7 +122,7 @@ class LoginViewModel(
             errorMessage = null,
         )
         viewModelScope.launch {
-            authRepository.resendOtp(phoneNumber)
+            authRepository.resendOtp(phoneNumber, country.dialCode)
                 .onSuccess {
                     startOtpStep(phoneNumber, it.message)
                 }
@@ -112,10 +136,11 @@ class LoginViewModel(
     }
 
     fun verifyOtp(rawOtp: String) {
-        val otp = rawOtp.trim()
+        val country = _uiState.value?.country ?: Countries.default()
+        val otp = rawOtp.filter { it.isDigit() }
         val phoneNumber = _uiState.value?.phoneNumber?.trim().orEmpty()
 
-        if (phoneNumber.length < MIN_PHONE_LENGTH) {
+        if (validatePhoneNumber(phoneNumber, country) != null) {
             _uiState.value = _uiState.value?.copy(
                 step = LoginStep.PHONE,
                 errorMessage = "Enter a valid phone number.",
@@ -124,10 +149,10 @@ class LoginViewModel(
             return
         }
 
-        if (otp.length < MIN_OTP_LENGTH) {
+        if (otp.length != OTP_LENGTH) {
             _uiState.value = _uiState.value?.copy(
                 step = LoginStep.OTP,
-                errorMessage = "Enter the OTP sent to your phone.",
+                errorMessage = "Enter the $OTP_LENGTH-digit code sent to your phone.",
                 infoMessage = null,
             )
             return
@@ -139,8 +164,11 @@ class LoginViewModel(
         )
 
         viewModelScope.launch {
-            authRepository.verifyOtp(phoneNumber, otp)
+            authRepository.verifyOtp(phoneNumber, country.dialCode, otp)
                 .onSuccess {
+                    // Covers the case where Firebase had not issued a token yet at sign-in,
+                    // so verify-otp sent none and the server could not push to this device.
+                    authRepository.ensureFcmTokenRegistered()
                     fetchProfileAfterLogin()
                 }
                 .onFailure { error ->
@@ -277,8 +305,8 @@ class LoginViewModel(
     }
 
     companion object {
-        private const val MIN_PHONE_LENGTH = 7
-        private const val MIN_OTP_LENGTH = 4
+        /** MessageCentral is configured to send 4-digit codes (otpLength=4). */
+        const val OTP_LENGTH = 4
         private const val RESEND_COOLDOWN_SECONDS = 120
     }
 }

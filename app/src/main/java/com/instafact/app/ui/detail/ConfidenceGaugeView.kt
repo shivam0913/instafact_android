@@ -17,7 +17,7 @@ class ConfidenceGaugeView @JvmOverloads constructor(
     defStyleAttr: Int = 0,
 ) : View(context, attrs, defStyleAttr) {
 
-    private val strokeWidth = context.resources.displayMetrics.density * 10f
+    private val strokeWidth = context.resources.displayMetrics.density * 6.5f
     private val arcInset = strokeWidth / 2f + context.resources.displayMetrics.density * 4f
     private val arcBounds = RectF()
 
@@ -25,7 +25,7 @@ class ConfidenceGaugeView @JvmOverloads constructor(
         style = Paint.Style.STROKE
         strokeCap = Paint.Cap.ROUND
         strokeWidth = this@ConfidenceGaugeView.strokeWidth
-        color = ContextCompat.getColor(context, R.color.brand_divider)
+        color = ContextCompat.getColor(context, R.color.brand_gauge_track)
     }
 
     private val progressPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {

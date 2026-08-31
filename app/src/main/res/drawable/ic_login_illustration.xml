@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Stand-in for the login hero art in the mockup: a phone with a verified document,
+  flanked by a reel badge and a chat bubble. Swap for the exported PNG when available.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="220dp"
+    android:height="150dp"
+    android:viewportWidth="220"
+    android:viewportHeight="150">
+
+    <!-- Soft backdrop -->
+    <path
+        android:fillAlpha="0.5"
+        android:fillColor="@color/brand_primary_soft"
+        android:pathData="M110,138c-46,0 -83,-14 -83,-38 0,-24 37,-52 83,-52s83,28 83,52c0,24 -37,38 -83,38z" />
+
+    <!-- Phone body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M86,22h48c6.1,0 11,4.9 11,11v84c0,6.1 -4.9,11 -11,11H86c-6.1,0 -11,-4.9 -11,-11V33c0,-6.1 4.9,-11 11,-11z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M86,22h48c6.1,0 11,4.9 11,11v84c0,6.1 -4.9,11 -11,11H86c-6.1,0 -11,-4.9 -11,-11V33c0,-6.1 4.9,-11 11,-11z"
+        android:strokeColor="@color/brand_border"
+        android:strokeWidth="2" />
+
+    <!-- Shield with check -->
+    <path
+        android:fillColor="@color/brand_primary"
+        android:pathData="M110,38l17,6.4v14.4c0,10.7 -7,20.6 -17,23.6 -10,-3 -17,-12.9 -17,-23.6V44.4z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M102.6,60.9l2.9,-2.9 3.7,3.7 8.4,-8.4 2.9,2.9 -11.3,11.3z" />
+
+    <!-- Result lines -->
+    <path
+        android:fillColor="@color/brand_border"
+        android:pathData="M88,94h44v5H88zM88,105h32v5H88z" />
+
+    <!-- Reel badge -->
+    <path
+        android:fillColor="@color/brand_primary"
+        android:pathData="M28,52h26c3.9,0 7,3.1 7,7v22c0,3.9 -3.1,7 -7,7H28c-3.9,0 -7,-3.1 -7,-7V59c0,-3.9 3.1,-7 7,-7z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M36,63l14,7 -14,7z" />
+
+    <!-- Chat bubble -->
+    <path
+        android:fillColor="@color/brand_coral"
+        android:pathData="M166,40h28c4.4,0 8,3.6 8,8v18c0,4.4 -3.6,8 -8,8h-12l-9,9v-9h-7c-4.4,0 -8,-3.6 -8,-8V48c0,-4.4 3.6,-8 8,-8z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M172,55m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0M182,55m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0M192,55m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+
+    <!-- Magnifier -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M160,96m-14,0a14,14 0,1 1,28 0a14,14 0,1 1,-28 0"
+        android:strokeColor="@color/brand_primary"
+        android:strokeWidth="4" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M170,106l10,10"
+        android:strokeColor="@color/brand_primary"
+        android:strokeLineCap="round"
+        android:strokeWidth="5" />
+</vector>

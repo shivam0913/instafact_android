@@ -108,7 +108,7 @@
                     <FrameLayout
                         android:id="@+id/navHomeIconBg"
                         android:layout_width="68dp"
-                        android:layout_height="32dp"
+                        android:layout_height="20dp"
                         android:background="@android:color/transparent">
 
                         <ImageView
@@ -125,7 +125,7 @@
                         android:id="@+id/navHomeLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="7dp"
+                        android:layout_marginTop="4dp"
                         android:fontFamily="@font/inter"
                         android:text="@string/home_title"
                         android:textColor="@color/brand_primary"
@@ -145,7 +145,7 @@
                     <FrameLayout
                         android:id="@+id/navExploreIconBg"
                         android:layout_width="68dp"
-                        android:layout_height="32dp"
+                        android:layout_height="20dp"
                         android:background="@android:color/transparent">
 
                         <ImageView
@@ -162,7 +162,7 @@
                         android:id="@+id/navExploreLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="7dp"
+                        android:layout_marginTop="4dp"
                         android:fontFamily="@font/inter"
                         android:text="@string/explore_title"
                         android:textColor="@color/brand_muted"
@@ -182,7 +182,7 @@
                     <FrameLayout
                         android:id="@+id/navProfileIconBg"
                         android:layout_width="68dp"
-                        android:layout_height="32dp"
+                        android:layout_height="20dp"
                         android:background="@android:color/transparent">
 
                         <ImageView
@@ -199,7 +199,7 @@
                         android:id="@+id/navProfileLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="7dp"
+                        android:layout_marginTop="4dp"
                         android:fontFamily="@font/inter"
                         android:text="@string/profile_title"
                         android:textColor="@color/brand_muted"

@@ -6,6 +6,8 @@ import com.instafact.app.data.model.ChatMessageResponse
 import com.instafact.app.data.model.DeleteHistoryResponse
 import com.instafact.app.data.model.DetailResponse
 import com.instafact.app.data.model.ExploreItemResponse
+import com.instafact.app.data.model.FcmTokenUpdateRequest
+import com.instafact.app.data.model.FcmTokenUpdateResponse
 import com.instafact.app.data.model.FeedbackRequest
 import com.instafact.app.data.model.FeedbackResponse
 import com.instafact.app.data.model.HistoryItemResponse
@@ -51,6 +53,11 @@ interface ApiService {
     suspend fun refreshToken(
         @Body request: TokenRefreshRequest,
     ): TokenRefreshResponse
+
+    @POST("fcm-token")
+    suspend fun updateFcmToken(
+        @Body request: FcmTokenUpdateRequest,
+    ): FcmTokenUpdateResponse
 
     @GET("profile")
     suspend fun getProfile(): UserProfileResponse

@@ -14,7 +14,7 @@
     <string name="otp_title">Enter verification code</string>
     <string name="otp_subtitle">Use the OTP sent to your phone to finish signing in.</string>
     <string name="otp_hint">Enter OTP</string>
-    <string name="send_otp">Continue</string>
+    <string name="send_otp">Send OTP</string>
     <string name="verify_otp">Verify OTP</string>
     <string name="resend_otp">Resend code</string>
     <string name="change_number">Change number</string>
@@ -156,15 +156,22 @@
     <string name="faq_answer_6">Yes. Go to Profile, tap Edit, and update your details anytime. You can also upload a new profile photo or remove the existing one.</string>
     <string name="copied_to_clipboard">Copied to clipboard.</string>
     <string name="filter_all">All</string>
-    <string name="filter">Filter</string>
     <string name="verdict_true_short">True</string>
     <string name="verdict_false_short">False</string>
     <string name="verdict_misleading_short">Misleading</string>
+    <string name="verdict_exaggerated_short">Exaggerated</string>
+    <string name="verdict_hidden_information_short">Missing Context</string>
+    <string name="verdict_unverified_short">Unverified</string>
+    <string name="verdict_unverifiable_short">Unverifiable</string>
     <string name="logout">Logout</string>
     <string name="logout_caption">Save your session</string>
     <string name="detail_title">Check Details</string>
     <string name="label_verdict_format">%1$s</string>
     <string name="detail_shared_meta">• Shared %1$s</string>
+    <string name="detail_in_progress_title">We\'re checking this for you</string>
+    <string name="detail_in_progress_body">Our team is going through the claims and matching them against reliable sources. You\'ll get a notification the moment the result is ready.</string>
+    <string name="detail_check_failed_title">We couldn\'t finish this check</string>
+    <string name="detail_check_failed_body">Something went wrong while checking this link. Please submit it again.</string>
     <string name="detail_result_pending">The result is still being processed. Check back soon or wait for a push notification.</string>
     <string name="detail_feedback_caption">Was this helpful?</string>
     <string name="detail_ai_button">Chat with Expert</string>
@@ -215,7 +222,6 @@
     <string name="delete">Delete</string>
     <string name="delete_unavailable">Delete is not available yet.</string>
     <string name="checked_relative_time">Checked %1$s</string>
-    <string name="filter_coming_soon">More filters are coming soon.</string>
     <string name="app_version_format">App Version %1$s</string>
     <string name="play_store_unavailable">Couldn’t open the Play Store right now.</string>
     <string name="platform_instagram">Instagram Reel</string>
@@ -233,7 +239,8 @@
     <string name="completed">Completed</string>
     <string name="failed">Failed</string>
     <string name="unknown">Unknown</string>
-    <string name="verdict_pending">Unverified</string>
+    <string name="verdict_in_progress">Checking\u2026</string>
+    <string name="verdict_check_failed">Check failed</string>
     <string name="confidence_format">%1$d%%</string>
     <string name="confidence_label">Confidence</string>
     <string name="notification_permission_rationale">Allow notifications so Instafact can alert you when fact-check results are ready.</string>
@@ -251,6 +258,8 @@
     <string name="why_this_is_false">Why this is False</string>
     <string name="why_this_is_misleading">Why this is Misleading</string>
     <string name="why_this_is_unverified">Why this is Unverified</string>
+    <string name="why_this_is_exaggerated">Why this is Exaggerated</string>
+    <string name="why_this_is_hidden_information">What this reel leaves out</string>
     <string name="detail_confidence_format">Confidence %1$s</string>
     <string name="detail_play">Play</string>
     <string name="detail_save">Save</string>
@@ -281,6 +290,9 @@
     <string name="detail_verdict_blurb_misleading">This reel mixes facts with exaggeration or missing context.</string>
     <string name="detail_verdict_blurb_unverified">This reel does not have enough reliable evidence yet.</string>
     <string name="verdict_mostly_true">Mostly True</string>
+    <string name="verdict_hidden_information">Missing Context</string>
+    <string name="detail_verdict_blurb_exaggerated">The core of this reel is right, but the effect is overstated.</string>
+    <string name="detail_verdict_blurb_hidden_information">This reel is broadly right but leaves out something important.</string>
     <string name="in_app_browser_title">Web page</string>
     <string name="close">Close</string>
     <string name="search_placeholder_home">Search your fact-checks</string>
@@ -296,4 +308,84 @@
         <item quantity="one">%1$d check</item>
         <item quantity="other">%1$d checks</item>
     </plurals>
+    <string name="splash_loading">Loading…</string>
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_subtitle">Stay updated with the latest from InstaFact</string>
+    <string name="notifications_mark_all_read">Mark all read</string>
+    <string name="notifications_tap_to_view">Tap to view result</string>
+    <string name="notifications_empty_title">No notifications yet</string>
+    <string name="notifications_empty_subtitle">Nothing here right now. Come back later — we\'ll let you know as soon as a fact-check is ready.</string>
+    <string name="login_phone_hint">Enter your mobile number</string>
+    <string name="login_privacy_note">We never share your number</string>
+    <string name="login_headline_top">Fact Check,</string>
+    <string name="login_headline_bottom">What Do You See?</string>
+    <string name="otp_enter_title">Enter OTP</string>
+    <string name="login_phone_display">+%1$s %2$s</string>
+    <string name="login_country_code_format">%1$s +%2$s</string>
+    <string name="country_dial_code_format">+%1$s</string>
+    <string name="country_picker_title">Select country</string>
+    <string name="country_picker_search_hint">Search country or code</string>
+    <string name="country_picker_empty">No countries match that search.</string>
+    <string name="otp_sent_to">We\'ve sent a %1$d-digit code to</string>
+    <string name="otp_change">Change</string>
+    <string name="otp_didnt_receive">Didn\'t receive OTP?</string>
+    <string name="otp_resend_in">Resend in %1$s</string>
+    <string name="otp_resend_now">Resend OTP</string>
+    <string name="otp_verify_button">Verify &amp; Continue</string>
+    <!-- ===== Walkthrough ===== -->
+    <string name="walk_skip">Skip</string>
+    <string name="walk_welcome_title">Welcome to</string>
+    <string name="walk_welcome_brand">InstaFact!</string>
+    <string name="walk_welcome_body">Your daily dose of real facts,\nminus the fiction.\nThink better. Choose wiser.</string>
+    <string name="walk_previous">Previous</string>
+    <string name="walk_next">Next</string>
+    <string name="walk_get_started">Get Started</string>
+
+    <string name="walk_title_1">Can you trust everything you see?</string>
+    <string name="walk_highlight_1">everything</string>
+    <string name="walk_body_1">Reels and Shorts are full of claims, advice and \u201cfacts.\u201d But not everything you see is true.</string>
+
+    <string name="walk_title_2">Don\'t waste your time figuring it out.</string>
+    <string name="walk_highlight_2">Don\'t waste</string>
+    <string name="walk_body_2">Share any Reel or Short with InstaFact and get a clear answer instantly.</string>
+
+    <string name="walk_title_3">Know before you believe.</string>
+    <string name="walk_highlight_3">you believe.</string>
+    <string name="walk_body_3">Check the facts. See the sources. Make up your own mind.</string>
+
+    <string name="walk_title_4">Share only good information with your loved ones.</string>
+    <string name="walk_highlight_4">your loved ones.</string>
+    <string name="walk_body_4">We share Reels with the people we care about. Make sure you\'re not passing on misinformation.</string>
+
+    <!-- Illustration copy -->
+    <string name="walk_reel_1">Drink this for glowing skin in 7 days!</string>
+    <string name="walk_reel_1_views">1.2M</string>
+    <string name="walk_reel_2">This is the real footage from the moon!</string>
+    <string name="walk_reel_2_views">3.4M</string>
+    <string name="walk_reel_3">Lose 10kg in 10 days with this diet!</string>
+    <string name="walk_reel_3_views">876K</string>
+
+    <string name="walk_result_label">Fact Check Result</string>
+    <string name="walk_result_verdict">Mostly True</string>
+    <string name="walk_result_body">Green tea may have some benefits for skin, but it\'s not a magic solution. Results vary based on lifestyle, diet and individual factors.</string>
+
+    <string name="walk_verdict_summary">The claim is partially true, but it\'s being oversimplified.</string>
+    <string name="walk_true_title">What\'s true</string>
+    <string name="walk_true_body">Green tea contains antioxidants that can support skin health.</string>
+    <string name="walk_missing_title">What\'s missing</string>
+    <string name="walk_missing_body">It\'s not a quick fix, and results vary for each person.</string>
+    <string name="walk_false_title">What\'s not true</string>
+    <string name="walk_false_body">It doesn\'t guarantee glowing skin in 7 days.</string>
+    <string name="walk_sources">Sources</string>
+    <string name="walk_source_1">NIH</string>
+    <string name="walk_source_1_name">National Institutes of Health</string>
+    <string name="walk_source_2">WebMD</string>
+    <string name="walk_source_3">Healthline</string>
+    <string name="walk_source_more">+2</string>
+    <string name="walk_source_more_label">More</string>
+
+    <string name="walk_shared_title">Checked with InstaFact</string>
+    <string name="walk_shared_body">You can share this with confidence \u2014 it\'s true!</string>
+    <string name="walk_shared_reel_title">Healthy eating</string>
+    <string name="walk_shared_reel_body">for a stronger immune system</string>
 </resources>

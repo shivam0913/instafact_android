@@ -14,14 +14,15 @@ import com.instafact.app.databinding.ItemSubmissionBinding
 import com.instafact.app.utils.ellipsized
 import com.instafact.app.utils.formatFactCheckCount
 import com.instafact.app.utils.displayConfidence
-import com.instafact.app.utils.displayVerdict
 import com.instafact.app.utils.loadThumbnail
 import com.instafact.app.utils.platformIconRes
 import com.instafact.app.utils.sourceUrlLabel
 import com.instafact.app.utils.toCompactRelativeTimeLabel
 import com.instafact.app.utils.toReadableHeadline
-import com.instafact.app.utils.verdictColorRes
-import com.instafact.app.utils.verdictSoftColorRes
+import com.instafact.app.utils.resultColorRes
+import com.instafact.app.utils.resultIconRes
+import com.instafact.app.utils.resultLabel
+import com.instafact.app.utils.resultSoftColorRes
 
 class SubmissionAdapter(
     private val userVoteLookup: (Int) -> String?,
@@ -59,7 +60,7 @@ class SubmissionAdapter(
             binding.sourceTextView.text = sourceLabel.ellipsized(30)
             binding.sourceIconImageView.setImageResource(item.videoUrl.platformIconRes())
             binding.thumbnailImageView.loadThumbnail(item.thumbnailUrl)
-            binding.verdictTextView.text = item.verdict.displayVerdict(context)
+            binding.verdictTextView.text = resultLabel(context, item.status, item.verdict)
             binding.countTextView.text = item.factCheckCount.formatFactCheckCount(context)
             binding.statusTextView.text = item.createdAt.toCompactRelativeTimeLabel(context)
                 ?: item.confidence.displayConfidence(context)
@@ -86,19 +87,12 @@ class SubmissionAdapter(
                 ),
             )
 
-            val verdictColor = ContextCompat.getColor(context, item.verdict.verdictColorRes())
+            val verdictColor = ContextCompat.getColor(context, resultColorRes(item.status, item.verdict))
             binding.verdictTextView.setTextColor(verdictColor)
             binding.verdictChipContainer.backgroundTintList =
-                ContextCompat.getColorStateList(context, item.verdict.verdictSoftColorRes())
+                ContextCompat.getColorStateList(context, resultSoftColorRes(item.status, item.verdict))
             binding.verdictIconImageView.setColorFilter(verdictColor)
-            binding.verdictIconImageView.setImageResource(
-                when (item.verdict?.lowercase()) {
-                    "true" -> R.drawable.ic_verdict_true_outline
-                    "false" -> R.drawable.ic_verdict_false_outline
-                    "misleading" -> R.drawable.ic_verdict_misleading_outline
-                    else -> R.drawable.ic_verdict_misleading_outline
-                },
-            )
+            binding.verdictIconImageView.setImageResource(resultIconRes(item.status, item.verdict))
             binding.helpfulActionLayout.setOnClickListener { onFeedbackClicked(item, FeedbackType.UP) }
             binding.notHelpfulActionLayout.setOnClickListener { onFeedbackClicked(item, FeedbackType.DOWN) }
             binding.moreButton.setOnClickListener { onMoreClicked(it, item) }

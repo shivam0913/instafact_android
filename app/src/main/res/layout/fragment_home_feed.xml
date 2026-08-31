@@ -190,93 +190,25 @@
                     </androidx.constraintlayout.widget.ConstraintLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <LinearLayout
+                <!--
+                  Chips are built in code from the verdicts actually present in the feed, so
+                  an option that would return nothing is never offered. Scrolls because the
+                  backend has seven verdicts and they will not all fit on a narrow screen.
+                -->
+                <HorizontalScrollView
+                    android:id="@+id/filterScrollView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:scrollbars="none">
 
-                    <TextView
-                        android:id="@+id/filterAllChip"
-                        android:layout_width="56dp"
-                        android:layout_height="36dp"
-                        android:background="@drawable/bg_home_filter_chip_selected"
-                        android:ellipsize="end"
-                        android:gravity="center"
-                        android:maxLines="1"
-                        android:text="@string/filter_all"
-                        android:textColor="@color/white"
-                        android:textSize="10.5sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/filterTrueChip"
-                        android:layout_width="66dp"
-                        android:layout_height="36dp"
-                        android:layout_marginStart="4dp"
-                        android:background="@drawable/bg_home_filter_chip"
-                        android:drawableStart="@drawable/ic_verdict_true_outline"
-                        android:drawablePadding="4dp"
-                        android:ellipsize="end"
-                        android:gravity="center"
-                        android:maxLines="1"
-                        android:paddingHorizontal="6dp"
-                        android:text="@string/verdict_true_short"
-                        android:textColor="@color/brand_text"
-                        android:textSize="9.5sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/filterMisleadingChip"
-                        android:layout_width="88dp"
-                        android:layout_height="36dp"
-                        android:layout_marginStart="4dp"
-                        android:background="@drawable/bg_home_filter_chip"
-                        android:drawableStart="@drawable/ic_verdict_misleading_outline"
-                        android:drawablePadding="4dp"
-                        android:ellipsize="end"
-                        android:gravity="center"
-                        android:maxLines="1"
-                        android:paddingHorizontal="6dp"
-                        android:text="@string/verdict_misleading_short"
-                        android:textColor="@color/brand_text"
-                        android:textSize="9sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/filterFalseChip"
-                        android:layout_width="64dp"
-                        android:layout_height="36dp"
-                        android:layout_marginStart="4dp"
-                        android:background="@drawable/bg_home_filter_chip"
-                        android:drawableStart="@drawable/ic_verdict_false_outline"
-                        android:drawablePadding="4dp"
-                        android:ellipsize="end"
-                        android:gravity="center"
-                        android:maxLines="1"
-                        android:paddingHorizontal="6dp"
-                        android:text="@string/verdict_false_short"
-                        android:textColor="@color/brand_text"
-                        android:textSize="9.5sp"
-                        android:textStyle="bold" />
-
-                    <FrameLayout
-                        android:id="@+id/filterButton"
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:layout_marginStart="4dp"
-                        android:background="@drawable/bg_home_filter_chip">
-
-                        <ImageView
-                            android:layout_width="15dp"
-                            android:layout_height="15dp"
-                            android:layout_gravity="center"
-                            android:contentDescription="@string/filter"
-                            android:src="@drawable/ic_filter_outline"
-                            app:tint="@color/brand_primary" />
-                    </FrameLayout>
-                </LinearLayout>
+                    <LinearLayout
+                        android:id="@+id/filterChipContainer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal" />
+                </HorizontalScrollView>
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/historyRecyclerView"

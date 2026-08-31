@@ -23,7 +23,7 @@
 
     <style name="InstafactShapeAppearanceThumbHero">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">28dp</item>
+        <item name="cornerSize">14dp</item>
     </style>
 
     <style name="InstafactShapeAppearanceAvatar">
@@ -34,5 +34,131 @@
     <style name="InstafactShapeAppearanceAvatarCircle">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">999dp</item>
+    </style>
+    <style name="InstafactOtpDigit">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">54dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginEnd">8dp</item>
+        <item name="android:background">@drawable/bg_otp_box</item>
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="android:gravity">center</item>
+        <item name="android:inputType">number</item>
+        <item name="android:maxLength">1</item>
+        <item name="android:textColor">@color/brand_text</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:importantForAutofill">no</item>
+    </style>
+
+    <!--
+      Material3 tints dialog surfaces by elevation, which reads lavender against our white
+      cards. The window background is set explicitly in code; these keep inner surfaces
+      and the button bar on-brand.
+    -->
+    <style name="ThemeOverlay.Instafact.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorSurface">@color/brand_surface</item>
+        <item name="colorSurfaceContainer">@color/brand_surface</item>
+        <item name="colorSurfaceContainerHigh">@color/brand_surface</item>
+        <item name="colorSurfaceContainerHighest">@color/brand_surface</item>
+    </style>
+    <!-- White-bordered, shadowed card used for the walkthrough reel thumbnails. -->
+    <style name="WalkReelCard">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="layout_constraintWidth_percent">0.44</item>
+        <item name="cardBackgroundColor">@color/brand_surface</item>
+        <item name="cardCornerRadius">14dp</item>
+        <item name="cardElevation">10dp</item>
+        <item name="contentPadding">4dp</item>
+        <item name="strokeWidth">0dp</item>
+    </style>
+
+    <style name="WalkShadowCard">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="cardBackgroundColor">@color/brand_surface</item>
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">10dp</item>
+        <item name="strokeWidth">0dp</item>
+    </style>
+
+    <style name="WalkProgressSegment">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">4dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginStart">6dp</item>
+        <item name="android:background">@drawable/bg_progress_segment_inactive</item>
+    </style>
+
+    <!-- ===== Walkthrough verdict rows / source chips ===== -->
+    <style name="WalkVerdictRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:paddingVertical">12dp</item>
+    </style>
+
+    <style name="WalkVerdictRowIcon">
+        <item name="android:layout_width">20dp</item>
+        <item name="android:layout_height">20dp</item>
+        <item name="android:layout_marginTop">1dp</item>
+        <item name="android:contentDescription">@null</item>
+    </style>
+
+    <style name="WalkVerdictRowText">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginStart">12dp</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <style name="WalkVerdictRowTitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="android:textColor">@color/brand_ink</item>
+        <item name="android:textSize">13.5sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="WalkVerdictRowBody">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">2dp</item>
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="android:lineSpacingExtra">1dp</item>
+        <item name="android:textColor">@color/brand_muted</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="WalkSourceChip">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginEnd">8dp</item>
+        <item name="android:background">@drawable/bg_walk_source_chip</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:padding">8dp</item>
+    </style>
+
+    <style name="WalkSourceChipBadge">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">26dp</item>
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">10sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="WalkSourceChipLabel">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="android:maxLines">2</item>
+        <item name="android:textColor">@color/brand_muted</item>
+        <item name="android:textSize">9sp</item>
     </style>
 </resources>

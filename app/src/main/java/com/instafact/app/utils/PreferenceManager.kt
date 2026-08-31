@@ -58,6 +58,13 @@ class PreferenceManager(context: Context) {
         }
     }
 
+    /** The token last accepted by the backend, so re-registration only runs when it changes. */
+    fun saveSyncedFcmToken(token: String) {
+        sharedPreferences.edit {
+            putString(KEY_SYNCED_FCM_TOKEN, token)
+        }
+    }
+
     fun clearUserSession() {
         val fcmToken = getFcmToken()
         sharedPreferences.edit {
@@ -69,6 +76,8 @@ class PreferenceManager(context: Context) {
             remove(KEY_PROFILE_IMAGE_URL)
             remove(KEY_VOTED_QUERY_IDS)
             remove(KEY_VOTE_TYPES)
+            // The next account on this device has to register the token for itself.
+            remove(KEY_SYNCED_FCM_TOKEN)
             if (fcmToken != null) {
                 putString(KEY_FCM_TOKEN, fcmToken)
             }
@@ -91,6 +100,8 @@ class PreferenceManager(context: Context) {
     fun getProfileImageUrl(): String? = sharedPreferences.getString(KEY_PROFILE_IMAGE_URL, null)
 
     fun getFcmToken(): String? = sharedPreferences.getString(KEY_FCM_TOKEN, null)
+
+    fun getSyncedFcmToken(): String? = sharedPreferences.getString(KEY_SYNCED_FCM_TOKEN, null)
 
     fun isLoggedIn(): Boolean = !getAuthToken().isNullOrBlank() && getUserId() != null
 
@@ -193,6 +204,7 @@ class PreferenceManager(context: Context) {
         private const val KEY_PROFILE_NAME = "profile_name"
         private const val KEY_PROFILE_IMAGE_URL = "profile_image_url"
         private const val KEY_FCM_TOKEN = "fcm_token"
+        private const val KEY_SYNCED_FCM_TOKEN = "synced_fcm_token"
         private const val KEY_VOTED_QUERY_IDS = "voted_query_ids"
         private const val KEY_VOTE_TYPES = "vote_types"
         private const val KEY_VIDEO_METADATA_TITLE = "video_metadata_title"

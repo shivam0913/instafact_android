@@ -24,6 +24,7 @@ object HtmlRenderer {
 
         val spanned = HtmlCompat.fromHtml(content, HtmlCompat.FROM_HTML_MODE_LEGACY)
         val builder = SpannableStringBuilder(spanned)
+        builder.trimTrailingWhitespace()
         val spans = builder.getSpans(0, builder.length, URLSpan::class.java)
         spans.forEach { span ->
             val start = builder.getSpanStart(span)
@@ -45,6 +46,17 @@ object HtmlRenderer {
         textView.text = builder
         textView.movementMethod = LinkMovementMethod.getInstance()
         textView.highlightColor = Color.TRANSPARENT
+    }
+
+    /** Block-level tags leave trailing newlines that show up as dead space under the text. */
+    private fun SpannableStringBuilder.trimTrailingWhitespace() {
+        var end = length
+        while (end > 0 && this[end - 1].isWhitespace()) {
+            end--
+        }
+        if (end < length) {
+            delete(end, length)
+        }
     }
 
     fun toPlainText(html: String?): String {

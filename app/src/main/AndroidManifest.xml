@@ -44,6 +44,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".ui.notifications.NotificationsActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.home.HomeActivity"
             android:exported="true"
             android:launchMode="singleTop" >

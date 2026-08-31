@@ -1,11 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  inter_variable.ttf carries a wght axis (100-900). Registering only w400 made every
+  android:textStyle="bold" a synthetic (faux) bold of the regular weight. Each entry below
+  pins a real instance of the axis, so bold and medium render as true Inter weights.
+
+  fontVariationSettings needs API 26+; on 24-25 these all resolve to the default instance and
+  bold falls back to the previous synthetic rendering.
+-->
 <font-family xmlns:app="http://schemas.android.com/apk/res-auto">
     <font
         app:font="@font/inter_variable"
         app:fontStyle="normal"
+        app:fontVariationSettings="'wght' 400"
+        app:fontWeight="400" />
+    <font
+        app:font="@font/inter_variable"
+        app:fontStyle="normal"
+        app:fontVariationSettings="'wght' 500"
+        app:fontWeight="500" />
+    <font
+        app:font="@font/inter_variable"
+        app:fontStyle="normal"
+        app:fontVariationSettings="'wght' 600"
+        app:fontWeight="600" />
+    <font
+        app:font="@font/inter_variable"
+        app:fontStyle="normal"
+        app:fontVariationSettings="'wght' 700"
+        app:fontWeight="700" />
+    <font
+        app:font="@font/inter_variable"
+        app:fontStyle="normal"
+        app:fontVariationSettings="'wght' 800"
+        app:fontWeight="800" />
+
+    <font
+        app:font="@font/inter_italic_variable"
+        app:fontStyle="italic"
+        app:fontVariationSettings="'wght' 400"
         app:fontWeight="400" />
     <font
         app:font="@font/inter_italic_variable"
         app:fontStyle="italic"
-        app:fontWeight="400" />
+        app:fontVariationSettings="'wght' 600"
+        app:fontWeight="600" />
+    <font
+        app:font="@font/inter_italic_variable"
+        app:fontStyle="italic"
+        app:fontVariationSettings="'wght' 700"
+        app:fontWeight="700" />
 </font-family>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Page 3: supplied art, wrapped so both blocks carry the mockup's drop shadow. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:orientation="vertical"
+    android:paddingHorizontal="24dp"
+    android:paddingBottom="14dp">
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/verdictHeaderRow"
+        style="@style/WalkShadowCard">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/walk_result_verdict"
+            android:src="@drawable/walk3_result_dialog" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/sourcesSection"
+        style="@style/WalkShadowCard"
+        android:layout_marginTop="14dp">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/walk_sources"
+            android:src="@drawable/walk3_sources" />
+    </com.google.android.material.card.MaterialCardView>
+</LinearLayout>

@@ -7,6 +7,9 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.instafact.app.utils.AppContainer
 import com.instafact.app.utils.NotificationHelper
 import com.instafact.app.utils.SessionDebugLogger
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class InstafactApplication : Application() {
 
@@ -36,6 +39,13 @@ class InstafactApplication : Application() {
                 appContainer.preferenceManager.saveFcmToken(token)
                 SessionDebugLogger.logFcmToken("FirebaseMessaging.getToken", token)
                 SessionDebugLogger.logSessionSnapshot("FCM token saved", appContainer.preferenceManager)
+
+                // The token often lands after sign-in, so verify-otp may have sent nothing.
+                // Registering it here is what keeps the server able to reach this device.
+                CoroutineScope(Dispatchers.IO).launch {
+                    appContainer.authRepository.ensureFcmTokenRegistered()
+                        .onFailure { Log.w(TAG, "Could not register FCM token with the backend.", it) }
+                }
             }
             .addOnFailureListener { throwable ->
                 Log.w(TAG, "Unable to fetch FCM token.", throwable)

@@ -2,11 +2,13 @@ package com.instafact.app.data.model
 
 data class UserRegisterRequest(
     val phoneNumber: String,
+    val countryCode: String,
     val fcmToken: String? = null,
 )
 
 data class OTPResendRequest(
     val phoneNumber: String,
+    val countryCode: String,
 )
 
 data class OTPRequestResponse(
@@ -18,6 +20,7 @@ data class OTPRequestResponse(
 
 data class OTPVerifyRequest(
     val phoneNumber: String,
+    val countryCode: String,
     val otp: String,
     val fcmToken: String? = null,
 )
@@ -35,4 +38,12 @@ data class TokenRefreshRequest(
 data class TokenRefreshResponse(
     val token: String,
     val refreshToken: String,
+)
+
+data class FcmTokenUpdateRequest(
+    val fcmToken: String,
+)
+
+data class FcmTokenUpdateResponse(
+    val message: String,
 )

@@ -3,6 +3,7 @@ package com.instafact.app.utils
 import android.content.Context
 import android.text.format.DateUtils
 import androidx.annotation.ColorRes
+import androidx.annotation.DrawableRes
 import com.instafact.app.R
 import java.net.URLDecoder
 import java.text.DecimalFormat
@@ -10,7 +11,7 @@ import java.nio.charset.StandardCharsets
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
-import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 
@@ -25,7 +26,87 @@ fun String?.displayStatus(context: Context): String {
 }
 
 fun String?.displayVerdict(context: Context): String {
-    return this ?: context.getString(R.string.verdict_pending)
+    return when (this?.lowercase()) {
+        null -> context.getString(R.string.verdict_in_progress)
+        "hidden_information" -> context.getString(R.string.verdict_hidden_information)
+        else -> this
+    }
+}
+
+/**
+ * Where a query sits in its lifecycle.
+ *
+ * A query still being worked on has no verdict yet, which used to render as "Unverified" -
+ * the same wording as the real Unverified verdict, so a check in flight looked like a
+ * finished one that could not be proven. Keep these apart everywhere a verdict is shown.
+ */
+enum class ResultState { IN_PROGRESS, FAILED, RESOLVED }
+
+fun resultStateOf(status: String?, verdict: String?): ResultState {
+    return when (status?.lowercase()) {
+        "pending", "processing" -> ResultState.IN_PROGRESS
+        "failed" -> ResultState.FAILED
+        // No status to go on: a missing verdict still means there is nothing to show yet.
+        else -> if (verdict.isNullOrBlank()) ResultState.IN_PROGRESS else ResultState.RESOLVED
+    }
+}
+
+fun resultLabel(context: Context, status: String?, verdict: String?): String {
+    return when (resultStateOf(status, verdict)) {
+        ResultState.IN_PROGRESS -> context.getString(R.string.verdict_in_progress)
+        ResultState.FAILED -> context.getString(R.string.verdict_check_failed)
+        ResultState.RESOLVED -> verdict.displayVerdict(context)
+    }
+}
+
+@ColorRes
+fun resultColorRes(status: String?, verdict: String?): Int {
+    return when (resultStateOf(status, verdict)) {
+        ResultState.IN_PROGRESS -> R.color.brand_primary
+        ResultState.FAILED -> R.color.brand_status_unverified
+        ResultState.RESOLVED -> verdict.verdictColorRes()
+    }
+}
+
+@ColorRes
+fun resultSoftColorRes(status: String?, verdict: String?): Int {
+    return when (resultStateOf(status, verdict)) {
+        ResultState.IN_PROGRESS -> R.color.brand_primary_soft
+        ResultState.FAILED -> R.color.brand_status_unverified_soft
+        ResultState.RESOLVED -> verdict.verdictSoftColorRes()
+    }
+}
+
+@DrawableRes
+fun resultIconRes(status: String?, verdict: String?): Int {
+    return when (resultStateOf(status, verdict)) {
+        ResultState.IN_PROGRESS -> R.drawable.ic_clock_outline
+        ResultState.FAILED -> R.drawable.ic_verdict_misleading_outline
+        ResultState.RESOLVED -> verdict.verdictIconRes()
+    }
+}
+
+@DrawableRes
+fun String?.verdictIconRes(): Int {
+    return when (this?.lowercase()) {
+        "true" -> R.drawable.ic_verdict_true_outline
+        "false" -> R.drawable.ic_verdict_false_outline
+        else -> R.drawable.ic_verdict_misleading_outline
+    }
+}
+
+/** Short chip label for a verdict, used by the home filter row. */
+fun String?.verdictShortLabel(context: Context): String {
+    return when (this?.lowercase()) {
+        "true" -> context.getString(R.string.verdict_true_short)
+        "false" -> context.getString(R.string.verdict_false_short)
+        "misleading" -> context.getString(R.string.verdict_misleading_short)
+        "exaggerated" -> context.getString(R.string.verdict_exaggerated_short)
+        "hidden_information" -> context.getString(R.string.verdict_hidden_information_short)
+        "unverified" -> context.getString(R.string.verdict_unverified_short)
+        "unverifiable" -> context.getString(R.string.verdict_unverifiable_short)
+        else -> this.orEmpty()
+    }
 }
 
 fun Int?.displayConfidence(context: Context): String {
@@ -38,6 +119,8 @@ fun String?.verdictSectionTitle(context: Context): String {
         "true" -> context.getString(R.string.why_this_is_true)
         "false" -> context.getString(R.string.why_this_is_false)
         "misleading" -> context.getString(R.string.why_this_is_misleading)
+        "exaggerated" -> context.getString(R.string.why_this_is_exaggerated)
+        "hidden_information" -> context.getString(R.string.why_this_is_hidden_information)
         else -> context.getString(R.string.why_this_is_unverified)
     }
 }
@@ -47,7 +130,7 @@ fun String?.verdictColorRes(): Int {
     return when (this?.lowercase()) {
         "true" -> R.color.brand_status_true
         "false" -> R.color.brand_status_false
-        "misleading" -> R.color.brand_status_misleading
+        "misleading", "exaggerated", "hidden_information" -> R.color.brand_status_misleading
         else -> R.color.brand_status_unverified
     }
 }
@@ -57,7 +140,7 @@ fun String?.verdictSoftColorRes(): Int {
     return when (this?.lowercase()) {
         "true" -> R.color.brand_status_true_soft
         "false" -> R.color.brand_status_false_soft
-        "misleading" -> R.color.brand_status_misleading_soft
+        "misleading", "exaggerated", "hidden_information" -> R.color.brand_status_misleading_soft
         else -> R.color.brand_status_unverified_soft
     }
 }
@@ -89,6 +172,22 @@ fun String.toReadableHeadline(): String {
                 }
             }
     }.getOrDefault(this).ifBlank { this }
+}
+
+/** "2m ago" / "3h ago" / "5d ago" for a local epoch-millis timestamp. */
+fun Long.toShortRelativeTime(): String {
+    val elapsed = System.currentTimeMillis() - this
+    if (this <= 0L || elapsed < 0L) return "now"
+    val minutes = elapsed / 60_000
+    val hours = minutes / 60
+    val days = hours / 24
+    return when {
+        minutes < 1 -> "now"
+        minutes < 60 -> "${minutes}m ago"
+        hours < 24 -> "${hours}h ago"
+        days < 7 -> "${days}d ago"
+        else -> "${days / 7}w ago"
+    }
 }
 
 fun String.ellipsized(maxLength: Int = 58): String {
@@ -149,14 +248,17 @@ fun String?.explanationAsBullets(): String {
     }
 }
 
-private fun String?.toInstantOrNull(): Instant? {
+fun String?.toInstantOrNull(): Instant? {
     if (this.isNullOrBlank()) return null
 
     return parseAttempt { Instant.parse(this) }
         ?: parseAttempt { OffsetDateTime.parse(this).toInstant() }
         ?: parseAttempt {
+            // No offset in the string. The API stores and sends UTC, so read it as UTC -
+            // assuming the device's zone here made every timestamp wrong by the UTC offset
+            // (IST showed a fresh fact-check as "5h ago").
             LocalDateTime.parse(this, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                .atZone(ZoneId.systemDefault())
+                .atZone(ZoneOffset.UTC)
                 .toInstant()
         }
 }

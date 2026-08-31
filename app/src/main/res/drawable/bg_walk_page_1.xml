@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Page tint from the mockup: a soft wash rising into a curved band at the bottom. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <gradient
+                android:angle="270"
+                android:endColor="#F6F4FD"
+                android:startColor="#FFFFFF"
+                android:type="linear" />
+        </shape>
+    </item>
+    <item
+        android:bottom="-160dp"
+        android:left="-140dp"
+        android:right="-140dp"
+        android:top="440dp">
+        <shape android:shape="oval">
+            <solid android:color="#E9E5F8" />
+        </shape>
+    </item>
+</layer-list>

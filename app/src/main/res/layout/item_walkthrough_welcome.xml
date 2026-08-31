@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Opening slide: centred brand lockup over a full-bleed photo. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/pageRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipChildren="false"
+    android:gravity="center_horizontal"
+    android:orientation="vertical">
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/welcomeLogoCard"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
+        android:layout_marginTop="26dp"
+        app:cardBackgroundColor="@color/brand_surface"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="10dp"
+        app:strokeWidth="0dp">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/ic_instafact_logo" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <TextView
+        android:id="@+id/welcomeTitleTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginTop="20dp"
+        android:fontFamily="@font/inter"
+        android:gravity="center"
+        android:text="@string/walk_welcome_title"
+        android:textColor="@color/brand_ink"
+        android:textFontWeight="800"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        tools:targetApi="p" />
+
+    <TextView
+        android:id="@+id/welcomeBrandTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginHorizontal="24dp"
+        android:fontFamily="@font/inter"
+        android:gravity="center"
+        android:textFontWeight="800"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        tools:targetApi="p"
+        tools:text="InstaFact!" />
+
+    <TextView
+        android:id="@+id/welcomeSubtitleTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginTop="12dp"
+        android:fontFamily="@font/inter"
+        android:gravity="center"
+        android:lineSpacingExtra="5dp"
+        android:text="@string/walk_welcome_body"
+        android:textColor="#5A6180"
+        android:textSize="15sp" />
+
+    <com.instafact.app.ui.walkthrough.FeatheredImageView
+        android:id="@+id/welcomeImageView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="14dp"
+        android:layout_weight="1"
+        android:contentDescription="@null"
+        android:minHeight="240dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/walk0_welcome"
+        app:featherBottom="false"
+        app:featherLeft="false"
+        app:featherRight="false" />
+</LinearLayout>

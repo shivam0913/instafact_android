@@ -14,228 +14,383 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingHorizontal="22dp"
-        android:paddingBottom="24dp">
+        android:paddingHorizontal="24dp"
+        android:paddingBottom="28dp">
 
+        <!-- ============================ PHONE STEP ============================ -->
         <LinearLayout
+            android:id="@+id/phoneStepContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="end"
-            android:paddingTop="8dp">
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
 
             <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_user_outline" />
-        </LinearLayout>
+                android:id="@+id/loginLogoImageView"
+                android:layout_width="104dp"
+                android:layout_height="104dp"
+                android:layout_marginTop="36dp"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/ic_instafact_logo" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/login_welcome_prefix"
-            android:textColor="@color/brand_primary"
-            android:textSize="18sp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="@string/login_title"
-            android:textColor="@color/brand_primary"
-            android:textSize="38sp"
-            android:textStyle="bold"
-            android:visibility="gone" />
-
-        <TextView
-            android:id="@+id/titleTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="@string/login_brand_name"
-            android:textColor="@color/brand_primary"
-            android:textSize="38sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/login_subtitle"
-            android:textColor="@color/brand_muted"
-            android:textSize="15sp" />
-
-        <TextView
-            android:id="@+id/stepTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
-            android:text="@string/login_form_title"
-            android:textColor="@color/brand_text"
-            android:textSize="15sp" />
-
-        <TextView
-            android:id="@+id/formTitleTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="@string/login_form_title"
-            android:textColor="@color/brand_text"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:visibility="gone" />
-
-        <TextView
-            android:id="@+id/formSubtitleTextView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/login_form_subtitle"
-            android:textColor="@color/brand_muted"
-            android:textSize="13sp"
-            android:visibility="gone" />
-
-        <LinearLayout
-            android:id="@+id/phoneInputLayout"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginTop="18dp"
-            android:background="@drawable/bg_search_bar"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="14dp">
+            <TextView
+                android:id="@+id/loginBrandTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/inter"
+                android:textColor="@color/brand_ink"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                tools:text="InstaFact" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_light_icon_circle"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="8dp"
-                android:text="🇮🇳 +91"
-                android:textColor="@color/brand_text"
-                android:textSize="13sp" />
+                android:layout_marginTop="30dp"
+                android:fontFamily="@font/inter"
+                android:text="@string/login_headline_top"
+                android:textColor="@color/brand_ink"
+                android:textSize="23sp"
+                android:textStyle="bold" />
 
-            <EditText
-                android:id="@+id/phoneEditText"
-                android:layout_width="0dp"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_weight="1"
-                android:background="@null"
-                android:hint="98765 43210"
-                android:inputType="phone"
-                android:maxLines="1"
-                android:textColor="@color/brand_text"
-                android:textColorHint="@color/brand_muted"
-                tools:text="98765 43210" />
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/inter"
+                android:text="@string/login_headline_bottom"
+                android:textColor="@color/brand_primary"
+                android:textSize="23sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:layout_marginTop="12dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_login_shield" />
+
+            <LinearLayout
+                android:id="@+id/phoneInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_login_input"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp">
+
+                <TextView
+                    android:id="@+id/countryCodeTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:clickable="true"
+                    android:drawableEnd="@drawable/ic_chevron_down_small"
+                    android:drawablePadding="2dp"
+                    android:focusable="true"
+                    android:fontFamily="@font/inter"
+                    android:gravity="center_vertical"
+                    android:textColor="@color/brand_ink"
+                    android:textSize="14sp"
+                    tools:text="IN +91" />
+
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="28dp"
+                    android:layout_marginStart="10dp"
+                    android:background="@color/brand_border" />
+
+                <EditText
+                    android:id="@+id/phoneEditText"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:autofillHints="phoneNumber"
+                    android:background="@null"
+                    android:fontFamily="@font/inter"
+                    android:hint="@string/login_phone_hint"
+                    android:inputType="phone"
+                    android:maxLength="15"
+                    android:maxLines="1"
+                    android:textColor="@color/brand_ink"
+                    android:textColorHint="@color/brand_muted"
+                    android:textSize="14.5sp"
+                    tools:text="98765 43210" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/phoneErrorTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="@font/inter"
+                android:textColor="@color/error"
+                android:textSize="12.5sp"
+                android:visibility="gone"
+                tools:text="Enter a valid 10-digit number for India."
+                tools:visibility="visible" />
+
+            <FrameLayout
+                android:id="@+id/requestOtpButton"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_auth_cta"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:fontFamily="@font/inter"
+                    android:text="@string/send_otp"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center_vertical|end"
+                    android:layout_marginEnd="22dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_arrow_right" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="13dp"
+                    android:layout_height="13dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_lock_outline"
+                    app:tint="@color/brand_muted" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:fontFamily="@font/inter"
+                    android:text="@string/login_privacy_note"
+                    android:textColor="@color/brand_muted"
+                    android:textSize="12.5sp" />
+            </LinearLayout>
         </LinearLayout>
 
+        <!-- ============================= OTP STEP ============================= -->
+        <LinearLayout
+            android:id="@+id/otpStepContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <ImageButton
+                android:id="@+id/otpBackButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginTop="12dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/change_number"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_back_round"
+                app:tint="@color/brand_ink" />
+
+            <ImageView
+                android:layout_width="76dp"
+                android:layout_height="76dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="10dp"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/ic_instafact_logo" />
+
+            <TextView
+                android:id="@+id/otpBrandTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/inter"
+                android:textColor="@color/brand_ink"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                tools:text="InstaFact" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:fontFamily="@font/inter"
+                android:text="@string/otp_enter_title"
+                android:textColor="@color/brand_ink"
+                android:textSize="23sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/otpSentToTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:fontFamily="@font/inter"
+                android:textColor="@color/brand_muted"
+                android:textSize="14sp"
+                tools:text="We've sent a 4-digit code to" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/otpPhoneTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/inter"
+                    android:textColor="@color/brand_ink"
+                    android:textSize="14.5sp"
+                    android:textStyle="bold"
+                    tools:text="+91 98765 43210" />
+
+                <TextView
+                    android:id="@+id/changeNumberButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:fontFamily="@font/inter"
+                    android:padding="4dp"
+                    android:text="@string/otp_change"
+                    android:textColor="@color/brand_primary"
+                    android:textSize="14.5sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/otpBoxContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/otpDigit1"
+                    style="@style/InstafactOtpDigit"
+                    tools:text="1" />
+
+                <EditText
+                    android:id="@+id/otpDigit2"
+                    style="@style/InstafactOtpDigit"
+                    tools:text="7" />
+
+                <EditText
+                    android:id="@+id/otpDigit3"
+                    style="@style/InstafactOtpDigit" />
+
+                <EditText
+                    android:id="@+id/otpDigit4"
+                    style="@style/InstafactOtpDigit" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/otpErrorTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:fontFamily="@font/inter"
+                android:textColor="@color/error"
+                android:textSize="12.5sp"
+                android:visibility="gone"
+                tools:text="Enter the 4-digit code sent to your phone."
+                tools:visibility="visible" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/inter"
+                    android:text="@string/otp_didnt_receive"
+                    android:textColor="@color/brand_ink"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/resendOtpButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:fontFamily="@font/inter"
+                    android:paddingVertical="4dp"
+                    android:textColor="@color/brand_primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    tools:text="Resend in 00:28" />
+            </LinearLayout>
+
+            <FrameLayout
+                android:id="@+id/verifyOtpButton"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="24dp"
+                android:background="@drawable/bg_auth_cta"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:fontFamily="@font/inter"
+                    android:text="@string/otp_verify_button"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center_vertical|end"
+                    android:layout_marginEnd="22dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_arrow_right" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <!-- ============================ SHARED STATE ============================ -->
         <TextView
             android:id="@+id/helperTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
+            android:fontFamily="@font/inter"
+            android:gravity="center"
             android:textColor="@color/success"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:visibility="gone"
             tools:text="OTP sent successfully." />
-
-        <TextView
-            android:id="@+id/errorTextView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:textColor="@color/error"
-            android:textSize="14sp"
-            android:visibility="gone"
-            tools:text="Invalid OTP." />
-
-        <LinearLayout
-            android:id="@+id/otpContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:orientation="vertical"
-            android:visibility="gone">
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/otpInputLayout"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/otp_hint"
-                app:boxBackgroundColor="@color/brand_surface"
-                app:boxCornerRadiusBottomEnd="18dp"
-                app:boxCornerRadiusBottomStart="18dp"
-                app:boxCornerRadiusTopEnd="18dp"
-                app:boxCornerRadiusTopStart="18dp"
-                app:boxStrokeColor="@color/brand_border">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/otpEditText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:digits="0123456789"
-                    android:inputType="numberPassword"
-                    android:maxLength="6"
-                    android:maxLines="1"
-                    android:textColor="@color/brand_text" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <TextView
-                android:id="@+id/resendCountdownTextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:textColor="@color/brand_muted"
-                android:textSize="13sp"
-                android:visibility="gone"
-                tools:text="You can resend in 01:56" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/resendOtpButton"
-                    style="@style/Widget.Material3.Button.TextButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/resend_otp"
-                    android:textColor="@color/brand_primary" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/changeNumberButton"
-                    style="@style/Widget.Material3.Button.TextButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/change_number"
-                    android:textColor="@color/brand_muted" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/requestOtpButton"
-            style="@style/Widget.Material3.Button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
-            android:text="@string/send_otp"
-            app:backgroundTint="@color/brand_primary" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/verifyOtpButton"
-            style="@style/Widget.Material3.Button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="@string/verify_otp"
-            android:visibility="gone"
-            app:backgroundTint="@color/brand_primary" />
 
         <ProgressBar
             android:id="@+id/loginProgressBar"
@@ -243,60 +398,8 @@
             android:layout_height="28dp"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="14dp"
+            android:indeterminateTint="@color/brand_primary"
             android:visibility="gone" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
-            android:gravity="center"
-            android:text="@string/or_divider"
-            android:textColor="@color/brand_muted"
-            android:textSize="14sp" />
-
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/instagramLoginButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            app:cardBackgroundColor="@color/brand_surface"
-            app:cardCornerRadius="18dp"
-            app:cardElevation="0dp"
-            app:strokeColor="@color/brand_border"
-            app:strokeWidth="1dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:padding="14dp">
-
-                <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_instagram" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="@string/continue_with_instagram"
-                    android:textColor="@color/brand_text"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="26dp"
-            android:gravity="center"
-            android:text="@string/login_footer"
-            android:textColor="@color/brand_muted"
-            android:textSize="13sp" />
     </LinearLayout>
 
 </androidx.core.widget.NestedScrollView>

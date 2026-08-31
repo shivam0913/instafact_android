@@ -1,20 +1,25 @@
 package com.instafact.app.ui.home
 
 import android.content.Intent
-import android.net.Uri
+import android.graphics.Typeface
 import android.os.Bundle
-import android.provider.Settings
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
+import android.util.TypedValue
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.view.isVisible
 import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -25,6 +30,13 @@ import com.instafact.app.data.model.HistoryItemResponse
 import com.instafact.app.databinding.FragmentHomeFeedBinding
 import com.instafact.app.ui.detail.DetailActivity
 import com.instafact.app.utils.IntentExtras
+import com.instafact.app.ui.notifications.NotificationsActivity
+import com.instafact.app.utils.NotificationStore
+import com.instafact.app.utils.ResultState
+import com.instafact.app.utils.resultStateOf
+import com.instafact.app.utils.verdictColorRes
+import com.instafact.app.utils.verdictIconRes
+import com.instafact.app.utils.verdictShortLabel
 import com.instafact.app.utils.UiState
 import com.instafact.app.utils.UrlValidator
 import com.instafact.app.utils.ViewModelFactory
@@ -42,7 +54,7 @@ class HomeFeedFragment : Fragment() {
 
     private lateinit var submissionAdapter: SubmissionAdapter
     private var allItems: List<HistoryItemResponse> = emptyList()
-    private var selectedFilter: HomeFilter = HomeFilter.ALL
+    private var selectedFilter: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -76,10 +88,7 @@ class HomeFeedFragment : Fragment() {
         binding.swipeRefreshLayout.setOnRefreshListener { viewModel.loadHistory() }
         binding.retryButton.setOnClickListener { viewModel.loadHistory() }
         binding.submitButton.setOnClickListener { submitPastedUrl() }
-        binding.notificationButton.setOnClickListener { openNotificationSettings() }
-        binding.filterButton.setOnClickListener {
-            Toast.makeText(requireContext(), getString(R.string.filter_coming_soon), Toast.LENGTH_SHORT).show()
-        }
+        binding.notificationButton.setOnClickListener { openNotifications() }
         binding.pasteUrlEditText.setOnEditorActionListener { _, actionId, event ->
             if (actionId == EditorInfo.IME_ACTION_DONE ||
                 (event?.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN)
@@ -90,7 +99,6 @@ class HomeFeedFragment : Fragment() {
                 false
             }
         }
-        bindFilters()
         renderBrand()
 
         observeState()
@@ -117,7 +125,7 @@ class HomeFeedFragment : Fragment() {
                     binding.historyProgressBar.visibility = View.GONE
                     binding.errorStateContainer.visibility = View.GONE
                     allItems = state.data
-                    renderItems(allItems)
+                    refreshFilters()
                 }
 
                 is UiState.Error -> {
@@ -187,65 +195,113 @@ class HomeFeedFragment : Fragment() {
         }
     }
 
-    private fun bindFilters() {
-        binding.filterAllChip.setOnClickListener { updateFilter(HomeFilter.ALL) }
-        binding.filterTrueChip.setOnClickListener { updateFilter(HomeFilter.TRUE) }
-        binding.filterMisleadingChip.setOnClickListener { updateFilter(HomeFilter.MISLEADING) }
-        binding.filterFalseChip.setOnClickListener { updateFilter(HomeFilter.FALSE) }
-        updateFilter(HomeFilter.ALL)
-    }
+    /** Verdict chips are ordered like this whenever they are present in the feed. */
+    private val verdictChipOrder = listOf(
+        "true",
+        "misleading",
+        "false",
+        "exaggerated",
+        "hidden_information",
+        "unverified",
+        "unverifiable",
+    )
 
-    private fun updateFilter(filter: HomeFilter) {
-        selectedFilter = filter
-        updateFilterChipStyles()
+    /** Rebuild the chip row for the current feed, then apply the active filter. */
+    private fun refreshFilters() {
+        val available = availableVerdicts()
+        // The selected verdict may have vanished from the feed; fall back to All.
+        if (selectedFilter != null && selectedFilter !in available) {
+            selectedFilter = null
+        }
+        rebuildFilterChips(available)
         renderItems(allItems)
     }
 
-    private fun updateFilterChipStyles() {
-        styleFilterChip(binding.filterAllChip, selectedFilter == HomeFilter.ALL)
-        styleFilterChip(binding.filterTrueChip, selectedFilter == HomeFilter.TRUE)
-        styleFilterChip(binding.filterMisleadingChip, selectedFilter == HomeFilter.MISLEADING)
-        styleFilterChip(binding.filterFalseChip, selectedFilter == HomeFilter.FALSE)
+    private fun updateFilter(verdict: String?) {
+        selectedFilter = verdict
+        rebuildFilterChips(availableVerdicts())
+        renderItems(allItems)
     }
 
-    private fun styleFilterChip(chip: View, isSelected: Boolean) {
-        chip.setBackgroundResource(
-            if (isSelected) R.drawable.bg_home_filter_chip_selected else R.drawable.bg_home_filter_chip,
-        )
-        if (chip is android.widget.TextView) {
-            chip.setTextColor(
-                ContextCompat.getColor(
-                    requireContext(),
-                    if (isSelected) R.color.white else R.color.brand_text,
-                ),
+    /**
+     * Only the verdicts the feed actually contains.
+     *
+     * A fixed chip row let the user pick a verdict that matched nothing and then stare at an
+     * empty list. Items still being checked have no verdict, so they contribute no chip.
+     */
+    private fun availableVerdicts(): List<String> {
+        return allItems
+            .filter { resultStateOf(it.status, it.verdict) == ResultState.RESOLVED }
+            .mapNotNull { item -> item.verdict?.lowercase()?.takeIf { it.isNotBlank() } }
+            .distinct()
+            .sortedBy { verdict ->
+                verdictChipOrder.indexOf(verdict).takeIf { it >= 0 } ?: verdictChipOrder.size
+            }
+    }
+
+    private fun rebuildFilterChips(available: List<String>) {
+        val container = binding.filterChipContainer
+        container.removeAllViews()
+
+        // Nothing to narrow down: a lone "All" chip is just noise.
+        binding.filterScrollView.isVisible = available.isNotEmpty()
+        if (available.isEmpty()) return
+
+        container.addView(buildFilterChip(null, getString(R.string.filter_all), isFirst = true))
+        available.forEach { verdict ->
+            container.addView(
+                buildFilterChip(verdict, verdict.verdictShortLabel(requireContext()), isFirst = false),
             )
-            chip.compoundDrawablesRelative.filterNotNull().forEach { drawable ->
-                drawable.mutate().setTint(
+        }
+    }
+
+    private fun buildFilterChip(verdict: String?, label: String, isFirst: Boolean): TextView {
+        val context = requireContext()
+        val isSelected = selectedFilter == verdict
+        return TextView(context).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                dp(36),
+            ).apply {
+                if (!isFirst) marginStart = dp(4)
+            }
+            text = label
+            gravity = Gravity.CENTER
+            maxLines = 1
+            setTypeface(ResourcesCompat.getFont(context, R.font.inter), Typeface.BOLD)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 9.5f)
+            setPaddingRelative(dp(12), 0, dp(12), 0)
+            minWidth = dp(56)
+            setBackgroundResource(
+                if (isSelected) R.drawable.bg_home_filter_chip_selected else R.drawable.bg_home_filter_chip,
+            )
+            setTextColor(
+                ContextCompat.getColor(context, if (isSelected) R.color.white else R.color.brand_text),
+            )
+
+            if (verdict != null) {
+                val icon = ContextCompat.getDrawable(context, verdict.verdictIconRes())?.mutate()
+                icon?.setTint(
                     ContextCompat.getColor(
-                        requireContext(),
-                        if (isSelected) R.color.white else iconTintForChip(chip.id),
+                        context,
+                        if (isSelected) R.color.white else verdict.verdictColorRes(),
                     ),
                 )
+                icon?.setBounds(0, 0, dp(14), dp(14))
+                setCompoundDrawablesRelative(icon, null, null, null)
+                compoundDrawablePadding = dp(4)
             }
+
+            setOnClickListener { updateFilter(verdict) }
         }
     }
 
-    private fun iconTintForChip(chipId: Int): Int {
-        return when (chipId) {
-            R.id.filterTrueChip -> R.color.brand_status_true
-            R.id.filterMisleadingChip -> R.color.brand_status_misleading
-            R.id.filterFalseChip -> R.color.brand_status_false
-            else -> R.color.brand_text
-        }
-    }
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
     private fun renderItems(items: List<HistoryItemResponse>) {
-        val filteredItems = when (selectedFilter) {
-            HomeFilter.ALL -> items
-            HomeFilter.TRUE -> items.filter { it.verdict.equals("true", true) }
-            HomeFilter.MISLEADING -> items.filter { it.verdict.equals("misleading", true) }
-            HomeFilter.FALSE -> items.filter { it.verdict.equals("false", true) }
-        }
+        val filteredItems = selectedFilter?.let { verdict ->
+            items.filter { it.verdict.equals(verdict, ignoreCase = true) }
+        } ?: items
         submissionAdapter.submitList(filteredItems)
         binding.emptyStateContainer.visibility = if (filteredItems.isEmpty()) View.VISIBLE else View.GONE
     }
@@ -265,18 +321,12 @@ class HomeFeedFragment : Fragment() {
         binding.brandTextView.text = span
     }
 
-    private fun openNotificationSettings() {
-        val context = requireContext()
-        val intent = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-            }
-        } else {
-            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.fromParts("package", context.packageName, null)
-            }
-        }
-        startActivity(intent)
+    private fun openNotifications() {
+        startActivity(Intent(requireContext(), NotificationsActivity::class.java))
+    }
+
+    private fun refreshNotificationDot() {
+        binding.notificationDotView.isVisible = NotificationStore(requireContext()).unreadCount() > 0
     }
 
     private fun submitItemFeedback(item: HistoryItemResponse, feedbackType: FeedbackType) {
@@ -339,15 +389,13 @@ class HomeFeedFragment : Fragment() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        refreshNotificationDot()
+    }
+
     override fun onDestroyView() {
         _binding = null
         super.onDestroyView()
-    }
-
-    private enum class HomeFilter {
-        ALL,
-        TRUE,
-        MISLEADING,
-        FALSE,
     }
 }

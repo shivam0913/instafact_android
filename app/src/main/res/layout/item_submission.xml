@@ -209,6 +209,7 @@
                     android:contentDescription="@string/bookmark"
                     android:padding="0dp"
                     android:src="@drawable/ic_bookmark_outline"
+                    android:visibility="gone"
                     app:tint="@color/brand_primary" />
             </LinearLayout>
         </LinearLayout>

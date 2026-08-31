@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="FeatheredImageView">
+        <attr name="featherSize" format="dimension" />
+        <attr name="featherLeft" format="boolean" />
+        <attr name="featherTop" format="boolean" />
+        <attr name="featherRight" format="boolean" />
+        <attr name="featherBottom" format="boolean" />
+    </declare-styleable>
+</resources>

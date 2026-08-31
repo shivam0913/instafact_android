@@ -4,9 +4,14 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.graphics.Paint
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.TextUtils
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
 import android.view.Gravity
 import android.view.MenuItem
 import android.view.View
@@ -18,6 +23,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.isVisible
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.button.MaterialButton
@@ -27,6 +33,7 @@ import com.instafact.app.R
 import com.instafact.app.data.model.DetailResponse
 import com.instafact.app.data.model.FeedbackType
 import com.instafact.app.databinding.ActivityDetailBinding
+import com.instafact.app.databinding.DialogReferencesBinding
 import com.instafact.app.ui.login.LoginActivity
 import com.instafact.app.ui.webview.InAppBrowserActivity
 import com.instafact.app.utils.HtmlRenderer
@@ -43,6 +50,10 @@ import com.instafact.app.utils.platformIconRes
 import com.instafact.app.utils.sourceUrlLabel
 import com.instafact.app.utils.toReadableHeadline
 import com.instafact.app.utils.toRelativeTimeLabel
+import com.instafact.app.utils.ResultState
+import com.instafact.app.utils.resultColorRes
+import com.instafact.app.utils.resultLabel
+import com.instafact.app.utils.resultStateOf
 import com.instafact.app.utils.verdictColorRes
 import com.instafact.app.utils.verdictSectionTitle
 import com.instafact.app.viewmodel.DetailViewModel
@@ -53,6 +64,8 @@ class DetailActivity : AppCompatActivity() {
         private const val MENU_SHARE = 1
         private const val MENU_OPEN = 2
         private const val MENU_COPY = 3
+        private const val MAX_INLINE_REFERENCES = 3
+        private const val MAX_VISIBLE_TAGS = 3
     }
 
     private enum class DetailTab {
@@ -67,6 +80,8 @@ class DetailActivity : AppCompatActivity() {
     )
 
     private lateinit var binding: ActivityDetailBinding
+
+    private val interTypeface by lazy { ResourcesCompat.getFont(this, R.font.inter) }
 
     private val viewModel: DetailViewModel by viewModels {
         ViewModelFactory((application as InstafactApplication).appContainer)
@@ -112,9 +127,6 @@ class DetailActivity : AppCompatActivity() {
 
     private fun setupUi() {
         binding.backButton.setOnClickListener { finish() }
-        binding.bookmarkButton.setOnClickListener {
-            Toast.makeText(this, getString(R.string.detail_save_coming_soon), Toast.LENGTH_SHORT).show()
-        }
         binding.moreButton.setOnClickListener { showMoreMenu(it) }
         binding.copyLinkButton.setOnClickListener { copyCurrentLink() }
         binding.shareReelButton.setOnClickListener { shareCurrentResult() }
@@ -211,12 +223,14 @@ class DetailActivity : AppCompatActivity() {
         currentReferences = extractReferences(detail)
         isExplanationExpanded = false
 
-        val verdictText = detail.verdict.displayVerdict(this)
-        val verdictColor = ContextCompat.getColor(this, detail.verdict.verdictColorRes())
-        val verdictLabelColor = ContextCompat.getColor(this, detail.verdict.verdictColorRes())
+        val resultState = resultStateOf(detail.status, detail.verdict)
+        val verdictText = resultLabel(this, detail.status, detail.verdict)
+        val verdictColor = ContextCompat.getColor(this, resultColorRes(detail.status, detail.verdict))
+        val verdictLabelColor = verdictColor
 
         binding.statusTextView.text = detail.title?.takeIf { it.isNotBlank() } ?: detail.videoUrl.toReadableHeadline()
         binding.platformImageView.setImageResource(detail.videoUrl.platformIconRes())
+        binding.platformBadgeImageView.setImageResource(detail.videoUrl.platformIconRes())
         binding.videoUrlTextView.text = detail.videoUrl.sourceUrlLabel().ellipsized(28)
         binding.videoMetaTextView.isVisible = false
         binding.thumbnailImageView.loadThumbnail(detail.thumbnailUrl)
@@ -225,6 +239,7 @@ class DetailActivity : AppCompatActivity() {
         binding.verdictTextView.setTextColor(verdictLabelColor)
         binding.verdictIconImageView.setColorFilter(verdictColor)
         binding.verdictIconImageView.setImageResource(verdictIconRes(detail.verdict))
+        renderResultState(resultState)
 
         val summaryText = extractSummary(detail).ifBlank { getString(R.string.detail_result_pending) }
         binding.resultSummaryTextView.text = buildVerdictBlurb(detail)
@@ -242,14 +257,49 @@ class DetailActivity : AppCompatActivity() {
             R.string.detail_references_title_with_count,
             currentReferences.size,
         )
-        binding.viewAllReferencesTextView.isVisible = false
+        binding.viewAllReferencesTextView.isVisible = currentReferences.isNotEmpty()
         binding.askAiButton.visibility = if (detail.status.equals("completed", ignoreCase = true)) View.VISIBLE else View.GONE
         updateFeedbackButtons(detail)
         selectTab(DetailTab.SUMMARY, false)
     }
 
+    /**
+     * While a check is still running there is no verdict, confidence, summary or reference to
+     * show, so the result card and everything under it would render as empty scaffolding.
+     * Swap in a card that says the work is under way instead.
+     */
+    private fun renderResultState(state: ResultState) {
+        val settled = state == ResultState.RESOLVED
+        binding.resultCard.isVisible = settled
+        binding.tabsContainer.isVisible = settled
+        binding.summarySectionCard.isVisible = settled
+        binding.referencesSectionCard.isVisible = settled
+        binding.feedbackCard.isVisible = settled
+        binding.inProgressCard.isVisible = !settled
+
+        if (settled) return
+
+        val inProgress = state == ResultState.IN_PROGRESS
+        binding.inProgressTitleTextView.text = getString(
+            if (inProgress) R.string.detail_in_progress_title else R.string.detail_check_failed_title,
+        )
+        binding.inProgressBodyTextView.text = getString(
+            if (inProgress) R.string.detail_in_progress_body else R.string.detail_check_failed_body,
+        )
+        // A failed check is not going anywhere, so nothing should keep spinning.
+        binding.inProgressSpinner.isVisible = inProgress
+        binding.inProgressIconImageView.setImageResource(
+            if (inProgress) R.drawable.ic_clock_outline else R.drawable.ic_verdict_misleading_outline,
+        )
+        val accent = ContextCompat.getColor(
+            this,
+            if (inProgress) R.color.brand_primary else R.color.brand_status_unverified,
+        )
+        binding.inProgressIconImageView.setColorFilter(accent)
+    }
+
     private fun renderExplanation(detail: DetailResponse) {
-        val detailsHtml = detail.detailsHtml?.trim().orEmpty()
+        val detailsHtml = detail.detailsHtml.withoutLeadingHeading().asReadableHtml()
         val explanation = legacyBodyMarkdown(detail.explanation)
         binding.explanationTitleTextView.text = detail.verdict.verdictSectionTitle(this)
         if (detailsHtml.isBlank() && explanation.isBlank()) {
@@ -293,6 +343,12 @@ class DetailActivity : AppCompatActivity() {
         } else {
             getString(R.string.detail_read_more)
         }
+        binding.readMoreTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(
+            0,
+            0,
+            if (isExplanationExpanded) R.drawable.ic_chevron_up_small else R.drawable.ic_chevron_down_small,
+            0,
+        )
     }
 
     private fun renderTags(tags: List<String>) {
@@ -301,8 +357,12 @@ class DetailActivity : AppCompatActivity() {
         binding.tagsScrollView.isVisible = tags.isNotEmpty()
         if (tags.isEmpty()) return
 
-        tags.forEach { tag ->
+        tags.take(MAX_VISIBLE_TAGS).forEach { tag ->
             binding.tagsContainer.addView(createTagChip(tag))
+        }
+        val overflow = tags.size - MAX_VISIBLE_TAGS
+        if (overflow > 0) {
+            binding.tagsContainer.addView(createTagChip("+$overflow", accent = true))
         }
     }
 
@@ -311,10 +371,11 @@ class DetailActivity : AppCompatActivity() {
         binding.emptyReferencesTextView.isVisible = references.isEmpty()
         if (references.isEmpty()) return
 
-        references.forEachIndexed { index, reference ->
+        val visibleReferences = references.take(MAX_INLINE_REFERENCES)
+        visibleReferences.forEachIndexed { index, reference ->
             val row = createReferenceRow(reference)
             binding.referencesContainer.addView(row)
-            if (index < references.lastIndex) {
+            if (index < visibleReferences.lastIndex) {
                 binding.referencesContainer.addView(createVerticalSpacer())
             }
         }
@@ -327,14 +388,15 @@ class DetailActivity : AppCompatActivity() {
             isCheckable = false
             setEnsureMinTouchTargetSize(false)
             chipStrokeWidth = 0f
+            typeface = interTypeface
             textSize = 9.5f
             minHeight = dp(22)
             minimumHeight = dp(22)
             chipMinHeight = dp(22).toFloat()
-            chipStartPadding = dp(4).toFloat()
-            chipEndPadding = dp(4).toFloat()
-            textStartPadding = dp(2).toFloat()
-            textEndPadding = dp(2).toFloat()
+            chipStartPadding = dp(6).toFloat()
+            chipEndPadding = dp(6).toFloat()
+            textStartPadding = dp(3).toFloat()
+            textEndPadding = dp(3).toFloat()
             setTextColor(
                 ContextCompat.getColor(
                     context,
@@ -349,24 +411,30 @@ class DetailActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
             )
-            params.marginEnd = dp(3)
+            params.marginEnd = dp(5)
             layoutParams = params
         }
     }
 
-    private fun createReferenceRow(reference: ReferenceItem): View {
+    private fun createReferenceRow(
+        reference: ReferenceItem,
+        maxTitleLines: Int = 2,
+        onClick: (() -> Unit)? = null,
+    ): View {
         return LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             foreground = ContextCompat.getDrawable(context, R.drawable.bg_reference_row_ripple)
-            setPadding(dp(8), dp(6), dp(8), dp(6))
-            setOnClickListener { openInAppBrowser(reference.url, reference.title) }
+            setPadding(0, dp(5), 0, dp(5))
+            setOnClickListener {
+                onClick?.invoke() ?: openInAppBrowser(reference.url, reference.title)
+            }
 
             addView(
                 ImageView(context).apply {
-                    layoutParams = LinearLayout.LayoutParams(dp(15), dp(15))
-                    setImageResource(R.drawable.ic_link)
-                    setColorFilter(ContextCompat.getColor(context, R.color.brand_primary))
+                    layoutParams = LinearLayout.LayoutParams(dp(16), dp(16))
+                    setImageResource(R.drawable.ic_globe_outline)
+                    setColorFilter(ContextCompat.getColor(context, R.color.brand_text))
                 },
             )
 
@@ -375,13 +443,55 @@ class DetailActivity : AppCompatActivity() {
                     layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).also {
                         it.marginStart = dp(10)
                     }
-                    text = reference.title
-                    setTextColor(ContextCompat.getColor(context, R.color.brand_primary))
-                    textSize = 12f
-                    maxLines = 3
-                    paintFlags = paintFlags or Paint.UNDERLINE_TEXT_FLAG
+                    text = buildReferenceLabel(reference)
+                    typeface = interTypeface
+                    setTextColor(ContextCompat.getColor(context, R.color.brand_muted))
+                    textSize = 11.5f
+                    maxLines = maxTitleLines
+                    ellipsize = TextUtils.TruncateAt.END
                 },
             )
+        }
+    }
+
+    /** Renders a reference as "Healthline – Does Hot Water Help You Lose Weight?" with a bold source name. */
+    private fun buildReferenceLabel(reference: ReferenceItem): CharSequence {
+        val source = reference.url.toSourceName()
+        val title = reference.title.trim()
+        if (source.isBlank() || title.equals(source, ignoreCase = true)) {
+            return SpannableStringBuilder(title.ifBlank { source }).apply {
+                setSpan(StyleSpan(Typeface.BOLD), 0, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                setSpan(
+                    ForegroundColorSpan(ContextCompat.getColor(this@DetailActivity, R.color.brand_text)),
+                    0,
+                    length,
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
+                )
+            }
+        }
+
+        return SpannableStringBuilder("$source – $title").apply {
+            setSpan(StyleSpan(Typeface.BOLD), 0, source.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            setSpan(
+                ForegroundColorSpan(ContextCompat.getColor(this@DetailActivity, R.color.brand_text)),
+                0,
+                source.length,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
+            )
+        }
+    }
+
+    /** "https://www.ncbi.nlm.nih.gov/…" -> "NCBI", "https://healthline.com/…" -> "Healthline". */
+    private fun String.toSourceName(): String {
+        val host = runCatching { Uri.parse(this).host }.getOrNull()
+            ?.removePrefix("www.")
+            .orEmpty()
+        val label = host.substringBefore('.')
+        if (label.isBlank()) return ""
+        return if (label.length <= 4) {
+            label.uppercase()
+        } else {
+            label.replaceFirstChar { it.titlecase() }
         }
     }
 
@@ -536,16 +646,19 @@ class DetailActivity : AppCompatActivity() {
         updateTabVisuals(
             selected = tab == DetailTab.SUMMARY,
             labelView = binding.tabSummaryTextView,
+            iconView = binding.tabSummaryIcon,
             indicatorView = binding.tabSummaryIndicator,
         )
         updateTabVisuals(
             selected = tab == DetailTab.DETAILS,
             labelView = binding.tabDetailsTextView,
+            iconView = binding.tabDetailsIcon,
             indicatorView = binding.tabDetailsIndicator,
         )
         updateTabVisuals(
             selected = tab == DetailTab.REFERENCES,
             labelView = binding.tabReferencesTextView,
+            iconView = binding.tabReferencesIcon,
             indicatorView = binding.tabReferencesIndicator,
         )
 
@@ -563,6 +676,7 @@ class DetailActivity : AppCompatActivity() {
     private fun updateTabVisuals(
         selected: Boolean,
         labelView: TextView,
+        iconView: ImageView,
         indicatorView: View,
     ) {
         val textColor = ContextCompat.getColor(
@@ -570,6 +684,7 @@ class DetailActivity : AppCompatActivity() {
             if (selected) R.color.brand_primary else R.color.brand_muted,
         )
         labelView.setTextColor(textColor)
+        iconView.setColorFilter(textColor)
         indicatorView.setBackgroundColor(
             ContextCompat.getColor(
                 this,
@@ -580,19 +695,39 @@ class DetailActivity : AppCompatActivity() {
 
     private fun showAllReferencesDialog() {
         if (currentReferences.isEmpty()) return
-        val labels = currentReferences.map { it.title }.toTypedArray()
-        MaterialAlertDialogBuilder(this)
-            .setTitle(getString(R.string.detail_references_title_with_count, currentReferences.size))
-            .setItems(labels) { _, which ->
-                val reference = currentReferences.getOrNull(which) ?: return@setItems
-                openInAppBrowser(reference.url, reference.title)
-            }
+
+        val dialogBinding = DialogReferencesBinding.inflate(layoutInflater)
+        dialogBinding.referencesDialogTitleTextView.text = getString(
+            R.string.detail_references_title_with_count,
+            currentReferences.size,
+        )
+
+        val dialog = MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_Instafact_Dialog)
+            .setView(dialogBinding.root)
             .setNegativeButton(R.string.close, null)
-            .show()
+            .create()
+
+        currentReferences.forEachIndexed { index, reference ->
+            dialogBinding.referencesDialogContainer.addView(
+                createReferenceRow(reference, maxTitleLines = 3) {
+                    dialog.dismiss()
+                    openInAppBrowser(reference.url, reference.title)
+                },
+            )
+            if (index < currentReferences.lastIndex) {
+                dialogBinding.referencesDialogContainer.addView(createVerticalSpacer())
+            }
+        }
+
+        // Material 1.12 resolves the dialog background to a tinted surface; force our own.
+        dialog.window?.setBackgroundDrawable(
+            ContextCompat.getDrawable(this, R.drawable.bg_dialog_surface),
+        )
+        dialog.show()
     }
 
     private fun extractSummary(detail: DetailResponse): String {
-        val htmlSummary = HtmlRenderer.toPlainText(detail.summaryHtml)
+        val htmlSummary = HtmlRenderer.toPlainText(detail.summaryHtml.withoutLeadingHeading())
         if (htmlSummary.isNotBlank()) return htmlSummary
 
         val cleanText = cleanMarkdownToPlainText(legacyBodyMarkdown(detail.explanation))
@@ -610,6 +745,8 @@ class DetailActivity : AppCompatActivity() {
             "true" -> getString(R.string.detail_verdict_blurb_true)
             "false" -> getString(R.string.detail_verdict_blurb_false)
             "misleading" -> getString(R.string.detail_verdict_blurb_misleading)
+            "exaggerated" -> getString(R.string.detail_verdict_blurb_exaggerated)
+            "hidden_information" -> getString(R.string.detail_verdict_blurb_hidden_information)
             else -> getString(R.string.detail_verdict_blurb_unverified)
         }
     }
@@ -624,6 +761,23 @@ class DetailActivity : AppCompatActivity() {
             .ifBlank {
                 content.substringBefore("Sources reviewed").trim()
             }
+    }
+
+    /** Section HTML ships with its own <h2>; the card supplies the heading instead. */
+    private fun String?.withoutLeadingHeading(): String {
+        return this?.trim()
+            .orEmpty()
+            .replace(Regex("^\\s*<h[1-6]\\b[^>]*>.*?</h[1-6]>", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)), "")
+            .trim()
+    }
+
+    /** HtmlCompat renders <li> as a cramped "\u00b7item"; paragraphs with bullets read far better. */
+    private fun String.asReadableHtml(): String {
+        if (!contains("<li", ignoreCase = true)) return this
+        return replace(Regex("</?ul\\b[^>]*>", RegexOption.IGNORE_CASE), "")
+            .replace(Regex("</?ol\\b[^>]*>", RegexOption.IGNORE_CASE), "")
+            .replace(Regex("<li\\b[^>]*>", RegexOption.IGNORE_CASE), "<p>\u2022\u00a0")
+            .replace(Regex("</li>", RegexOption.IGNORE_CASE), "</p>")
     }
 
     private fun cleanMarkdownToPlainText(markdown: String): String {
@@ -728,7 +882,7 @@ class DetailActivity : AppCompatActivity() {
         return when (verdict?.lowercase()) {
             "true" -> R.drawable.ic_verdict_true_outline
             "false" -> R.drawable.ic_verdict_false_outline
-            "misleading" -> R.drawable.ic_verdict_misleading_outline
+            "misleading", "exaggerated", "hidden_information" -> R.drawable.ic_verdict_misleading_outline
             else -> R.drawable.ic_help_outline
         }
     }

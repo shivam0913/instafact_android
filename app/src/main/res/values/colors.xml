@@ -9,11 +9,20 @@
     <color name="brand_coral">#FF705B</color>
     <color name="brand_accent">#8E7BFF</color>
     <color name="brand_text">#374151</color>
+    <!-- Deeper navy used for the auth headlines and wordmark. -->
+    <color name="brand_ink">#1B1C3F</color>
+    <!-- Headline highlight sweep, sampled from the walkthrough mockup. -->
+    <color name="brand_gradient_start">#BE55E6</color>
+    <color name="brand_gradient_end">#6D4DFB</color>
+    <!-- Welcome wordmark sweep: violet through magenta to red. -->
+    <color name="brand_welcome_gradient_start">#5026FC</color>
+    <color name="brand_welcome_gradient_end">#F3494C</color>
     <color name="brand_muted">#6B7280</color>
     <color name="brand_background">#F7F8FE</color>
     <color name="brand_surface">#FFFFFF</color>
     <color name="brand_border">#ECECF5</color>
     <color name="brand_divider">#F0F1F8</color>
+    <color name="brand_gauge_track">#E6E6EF</color>
     <color name="brand_primary_soft">#F0EEFF</color>
     <color name="brand_secondary_soft">#FFF0EC</color>
     <color name="brand_overlay">#14655BFF</color>

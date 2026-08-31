@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ring that expands out from behind the Get Started label. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#332F1BF5" />
+    <corners android:radius="22dp" />
+</shape>

@@ -1,100 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:paddingHorizontal="24dp">
+    android:clipChildren="false"
+    android:fillViewport="true"
+    android:overScrollMode="never">
 
-    <FrameLayout
-        android:id="@+id/illustrationContainer"
+    <LinearLayout
+        android:id="@+id/pageRoot"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:foregroundGravity="center">
+        android:layout_height="wrap_content"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:orientation="vertical">
 
-        <LinearLayout
-            android:layout_width="200dp"
-            android:layout_height="320dp"
-            android:layout_gravity="center"
-            android:background="@drawable/bg_walkthrough_phone"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:rotation="-9"
-            android:translationX="22dp"
-            android:translationY="-8dp">
-
-            <ImageView
-                android:id="@+id/centerIconImageView"
-                android:layout_width="58dp"
-                android:layout_height="58dp"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_check_badge" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="190dp"
-            android:layout_height="260dp"
-            android:layout_gravity="center"
-            android:background="@drawable/bg_walkthrough_panel"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:translationX="22dp"
-            android:translationY="14dp">
-
-            <ImageView
-                android:id="@+id/primaryFloatingIconImageView"
-                android:layout_width="72dp"
-                android:layout_height="72dp"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_check_badge" />
-        </LinearLayout>
-
-        <ImageView
-            android:id="@+id/secondaryFloatingIconImageView"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_gravity="center"
-            android:layout_marginStart="-112dp"
+        <TextView
+            android:id="@+id/titleTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="24dp"
             android:layout_marginTop="18dp"
-            android:background="@drawable/bg_light_icon_circle"
-            android:padding="12dp"
-            android:src="@drawable/ic_instagram" />
+            android:fontFamily="@font/inter"
+            android:lineSpacingExtra="3dp"
+            android:textColor="@color/brand_ink"
+            android:textFontWeight="800"
+            android:textSize="25sp"
+            android:textStyle="bold"
+            tools:targetApi="p"
+            tools:text="Can you trust everything you see?" />
 
-        <ImageView
-            android:id="@+id/tertiaryFloatingIconImageView"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_gravity="center"
-            android:layout_marginStart="118dp"
-            android:layout_marginTop="126dp"
-            android:background="@drawable/bg_light_icon_circle"
-            android:padding="12dp"
-            android:src="@drawable/ic_youtube" />
-    </FrameLayout>
+        <TextView
+            android:id="@+id/descriptionTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="24dp"
+            android:layout_marginTop="14dp"
+            android:fontFamily="@font/inter"
+            android:lineSpacingExtra="5dp"
+            android:textColor="#5A6180"
+            android:textSize="14.5sp"
+            tools:text="Reels and Shorts are full of claims, advice and facts." />
 
-    <TextView
-        android:id="@+id/badgeTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="#CCD4FF"
-        android:textSize="13sp" />
-
-    <TextView
-        android:id="@+id/titleTextView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:textColor="@color/white"
-        android:textSize="42sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/descriptionTextView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="28dp"
-        android:textColor="#C6CCF4"
-        android:textSize="16sp" />
-
-</LinearLayout>
+        <FrameLayout
+            android:id="@+id/illustrationContainer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="16dp"
+            android:layout_weight="1"
+            android:clipChildren="false"
+            android:minHeight="300dp" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

@@ -14,8 +14,12 @@
         <item name="colorOnSurface">@color/brand_text</item>
         <item name="android:textColorPrimary">@color/brand_text</item>
         <item name="android:textColorSecondary">@color/brand_muted</item>
+        <!-- Material3 tints elevated surfaces toward the primary colour, which turns our
+             white cards bluish. The design uses flat white cards, so turn the overlay off. -->
+        <item name="elevationOverlayEnabled">false</item>
         <item name="android:fontFamily">@font/inter</item>
         <item name="fontFamily">@font/inter</item>
+
         <item name="android:colorBackground">@color/brand_background</item>
         <item name="android:windowBackground">@color/brand_background</item>
         <item name="android:statusBarColor">@color/brand_surface</item>

@@ -11,4 +11,6 @@ object IntentExtras {
     const val TAB_EXPLORE = "explore"
     const val TAB_PROFILE = "profile"
     const val KEY_QUERY_ID = "query_id"
+    const val KEY_TITLE = "title"
+    const val KEY_BODY = "body"
 }

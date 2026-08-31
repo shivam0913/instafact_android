@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
@@ -29,17 +28,19 @@ import com.instafact.app.BuildConfig
 import com.instafact.app.InstafactApplication
 import com.instafact.app.R
 import com.instafact.app.data.model.UserProfileResponse
+import com.instafact.app.ui.notifications.NotificationsActivity
 import com.instafact.app.data.model.UserProfileUpdateRequest
 import com.instafact.app.databinding.DialogEditProfileBinding
 import com.instafact.app.databinding.FragmentProfileBinding
 import com.instafact.app.ui.support.HelpSupportActivity
 import com.instafact.app.ui.splash.SplashActivity
 import com.instafact.app.utils.SessionDebugLogger
+import com.instafact.app.utils.toInstantOrNull
 import com.instafact.app.utils.UiState
 import com.instafact.app.utils.ViewModelFactory
 import com.instafact.app.viewmodel.ProfileViewModel
 import java.io.File
-import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -120,7 +121,9 @@ class ProfileFragment : Fragment() {
         binding.profileRetryButton.setOnClickListener { viewModel.loadProfile() }
         binding.editProfileButton.setOnClickListener { showEditProfileDialog() }
         binding.profilePhotoButton.setOnClickListener { showEditProfileDialog() }
-        binding.notificationButton.setOnClickListener { openNotificationSettings() }
+        binding.notificationButton.setOnClickListener {
+            startActivity(Intent(requireContext(), NotificationsActivity::class.java))
+        }
         binding.copyReferralButton.setOnClickListener { copyReferralCode() }
 
         observeProfile()
@@ -384,12 +387,10 @@ class ProfileFragment : Fragment() {
     }
 
     private fun formatMemberSince(value: String): String {
-        return runCatching {
-            val formatter = DateTimeFormatter.ofPattern("MMM yyyy", Locale.US)
-            OffsetDateTime.parse(value).format(formatter)
-        }.getOrElse {
-            getString(R.string.profile_unknown_member_since)
-        }
+        // Shared parsing so an offsetless timestamp is read as UTC rather than failing outright.
+        val instant = value.toInstantOrNull() ?: return getString(R.string.profile_unknown_member_since)
+        val formatter = DateTimeFormatter.ofPattern("MMM yyyy", Locale.US)
+        return formatter.format(instant.atZone(ZoneId.systemDefault()))
     }
 
     private fun genderIcon(gender: String?): Int {
@@ -407,20 +408,6 @@ class ProfileFragment : Fragment() {
         val clipboardManager = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboardManager.setPrimaryClip(ClipData.newPlainText(getString(R.string.profile_referral_code), referralCode))
         Toast.makeText(requireContext(), getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
-    }
-
-    private fun openNotificationSettings() {
-        val context = requireContext()
-        val intent = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-            }
-        } else {
-            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.fromParts("package", context.packageName, null)
-            }
-        }
-        startActivity(intent)
     }
 
     private fun openAppRating() {
