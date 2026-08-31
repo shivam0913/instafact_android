@@ -131,6 +131,14 @@ object Analytics {
         log(EVENT_RESULT_FAILED, bundleOf(PARAM_QUERY_ID to queryId.toLong()))
     }
 
+    /** Retry volume is the signal for how often checks fail in a recoverable way. */
+    fun logResultRetried(queryId: Int, platform: String) {
+        log(
+            EVENT_RESULT_RETRIED,
+            bundleOf(PARAM_QUERY_ID to queryId.toLong(), PARAM_PLATFORM to platform),
+        )
+    }
+
     // ---- Engagement with a result --------------------------------------------------
 
     fun logFeedbackSubmitted(queryId: Int, feedbackType: String, verdict: String?) {
@@ -331,6 +339,7 @@ object Analytics {
     private const val EVENT_RESULT_VIEWED = "result_viewed"
     private const val EVENT_RESULT_STILL_PROCESSING = "result_still_processing"
     private const val EVENT_RESULT_FAILED = "result_failed"
+    private const val EVENT_RESULT_RETRIED = "result_retried"
     private const val EVENT_FEEDBACK_SUBMITTED = "feedback_submitted"
     private const val EVENT_REFERENCES_OPENED = "references_opened"
     private const val EVENT_REFERENCE_LINK_OPENED = "reference_link_opened"

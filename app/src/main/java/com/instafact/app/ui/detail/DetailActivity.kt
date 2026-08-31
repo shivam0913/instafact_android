@@ -161,6 +161,7 @@ class DetailActivity : AppCompatActivity() {
         binding.tabDetailsContainer.setOnClickListener { selectTab(DetailTab.DETAILS, true) }
         binding.tabReferencesContainer.setOnClickListener { selectTab(DetailTab.REFERENCES, true) }
         binding.viewAllReferencesTextView.setOnClickListener { showAllReferencesDialog() }
+        binding.retryCheckButton.setOnClickListener { retryFailedCheck() }
         updateFeedbackButtons(null)
         selectTab(DetailTab.SUMMARY, false)
     }
@@ -181,6 +182,27 @@ class DetailActivity : AppCompatActivity() {
                     binding.contentScrollView.visibility = View.GONE
                     binding.detailErrorTextView.visibility = View.VISIBLE
                     binding.detailErrorTextView.text = state.message
+                }
+            }
+        }
+
+        viewModel.retryState.observe(this) { state ->
+            when (state) {
+                UiState.Idle, UiState.Loading -> Unit
+                is UiState.Success -> {
+                    viewModel.resetRetryState()
+                    binding.retryCheckButton.isEnabled = true
+                    Toast.makeText(this, R.string.detail_retry_started, Toast.LENGTH_SHORT).show()
+                    // The retry may produce a replacement query, so follow the new id.
+                    queryId = state.data
+                    currentDetail = null
+                    viewModel.loadDetail(queryId)
+                }
+
+                is UiState.Error -> {
+                    viewModel.resetRetryState()
+                    binding.retryCheckButton.isEnabled = true
+                    Toast.makeText(this, state.message, Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -306,6 +328,10 @@ class DetailActivity : AppCompatActivity() {
         binding.inProgressBodyTextView.text = getString(
             if (inProgress) R.string.detail_in_progress_body else R.string.detail_check_failed_body,
         )
+        // Placeholder bars only make sense while something is actually being written.
+        binding.inProgressShimmerContainer.isVisible = inProgress
+        // Retry replaces the copy-paste-resubmit loop a failed check used to require.
+        binding.retryCheckButton.isVisible = !inProgress
         // A failed check is not going anywhere, so nothing should keep spinning.
         binding.inProgressSpinner.isVisible = inProgress
         binding.inProgressIconImageView.setImageResource(
@@ -749,6 +775,20 @@ class DetailActivity : AppCompatActivity() {
             ContextCompat.getDrawable(this, R.drawable.bg_dialog_surface),
         )
         dialog.show()
+    }
+
+    /**
+     * Resubmits the same URL after a failed check.
+     *
+     * Nothing new is needed server-side: submit_query already retires a failed query and
+     * schedules a fresh one for the same content. This just saves the user going back to
+     * Instagram, re-copying the link and pasting it in again.
+     */
+    private fun retryFailedCheck() {
+        val url = currentDetail?.videoUrl?.takeIf { it.isNotBlank() } ?: return
+        binding.retryCheckButton.isEnabled = false
+        Analytics.logResultRetried(queryId, url.analyticsPlatform())
+        viewModel.retryCheck(url)
     }
 
     /**

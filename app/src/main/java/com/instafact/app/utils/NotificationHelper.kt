@@ -12,6 +12,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.instafact.app.R
 import com.instafact.app.ui.detail.DetailActivity
+import com.instafact.app.ui.home.HomeActivity
 
 object NotificationHelper {
 
@@ -69,4 +70,48 @@ object NotificationHelper {
 
         NotificationManagerCompat.from(context).notify(queryId, notification)
     }
+
+    /**
+     * Notification with no result behind it, such as the welcome greeting.
+     *
+     * Opens Home rather than a detail screen. A distinct notification id keeps it from
+     * replacing, or being replaced by, a real fact-check result.
+     */
+    fun showGeneralNotification(
+        context: Context,
+        title: String,
+        body: String,
+    ) {
+        val intent = Intent(context, HomeActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            GENERAL_NOTIFICATION_ID,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_stat_instafact)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .build()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
+        NotificationManagerCompat.from(context).notify(GENERAL_NOTIFICATION_ID, notification)
+    }
+
+    /** Negative so it can never collide with a query id used for result notifications. */
+    private const val GENERAL_NOTIFICATION_ID = -1
 }

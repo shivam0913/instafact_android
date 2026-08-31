@@ -45,8 +45,15 @@ class InstafactFirebaseMessagingService : FirebaseMessagingService() {
         // Paired with push_opened, this gives the delivered -> opened rate.
         Analytics.logPushReceived(queryId)
 
-        if (queryId == null) {
-            Log.w(TAG, "Push received without a query_id payload; stored without a deep link.")
+        // query_id 0 is the backend's "nothing to open" marker (welcome greetings), and
+        // a missing id means an older payload. Both must still post a tray notification -
+        // they just open the app instead of a result that does not exist.
+        if (queryId == null || queryId <= 0) {
+            NotificationHelper.showGeneralNotification(
+                context = this,
+                title = title,
+                body = body,
+            )
             return
         }
 

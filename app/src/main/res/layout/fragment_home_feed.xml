@@ -229,20 +229,49 @@
                     android:paddingVertical="40dp"
                     android:visibility="gone">
 
-                    <ImageView
-                        android:layout_width="68dp"
-                        android:layout_height="68dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_empty_state" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/inter"
+                        android:text="@string/home_empty_title"
+                        android:textAlignment="center"
+                        android:textColor="@color/brand_text"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:text="@string/home_empty"
+                        android:layout_marginTop="6dp"
+                        android:fontFamily="@font/inter"
+                        android:text="@string/home_empty_subtitle"
                         android:textAlignment="center"
                         android:textColor="@color/brand_muted"
-                        android:textSize="15sp" />
+                        android:textSize="13.5sp" />
+
+                    <!-- Three numbered steps rather than prose: the share flow is a
+                         sequence, and a person scanning an empty screen will follow
+                         numbered steps but will not read a paragraph. -->
+                    <include
+                        android:id="@+id/emptyStep1"
+                        layout="@layout/item_share_step"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="22dp" />
+
+                    <include
+                        android:id="@+id/emptyStep2"
+                        layout="@layout/item_share_step"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp" />
+
+                    <include
+                        android:id="@+id/emptyStep3"
+                        layout="@layout/item_share_step"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp" />
                 </LinearLayout>
 
                 <LinearLayout

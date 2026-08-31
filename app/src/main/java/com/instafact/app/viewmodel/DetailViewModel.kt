@@ -28,6 +28,28 @@ class DetailViewModel(
     private val _chatSendState = MutableLiveData<UiState<String>>(UiState.Idle)
     val chatSendState: LiveData<UiState<String>> = _chatSendState
 
+    private val _retryState = MutableLiveData<UiState<Int>>(UiState.Idle)
+    val retryState: LiveData<UiState<Int>> = _retryState
+
+    /**
+     * Resubmits a failed reel and reports the query id to open.
+     *
+     * The backend may return a new query id (it retires the failed one and creates a
+     * replacement), so the caller has to follow that id rather than keep polling the old.
+     */
+    fun retryCheck(videoUrl: String) {
+        _retryState.value = UiState.Loading
+        viewModelScope.launch {
+            submissionRepository.submitVideo(videoUrl)
+                .onSuccess { _retryState.value = UiState.Success(it.queryId) }
+                .onFailure { _retryState.value = UiState.Error(it.message.orEmpty()) }
+        }
+    }
+
+    fun resetRetryState() {
+        _retryState.value = UiState.Idle
+    }
+
     fun loadDetail(queryId: Int) {
         _detailState.value = UiState.Loading
         viewModelScope.launch {

@@ -45,6 +45,7 @@ import com.instafact.app.utils.UnsupportedPlatformDialog
 import com.instafact.app.utils.analyticsPlatform
 import com.instafact.app.viewmodel.HomeViewModel
 import androidx.fragment.app.activityViewModels
+import androidx.core.text.HtmlCompat
 
 class HomeFeedFragment : Fragment() {
 
@@ -71,6 +72,7 @@ class HomeFeedFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         Analytics.logScreenView("home_feed", "HomeFeedFragment")
+        renderEmptyStateGuide()
         submissionAdapter = SubmissionAdapter(
             userVoteLookup = { queryId -> viewModel.getUserVoteType(queryId) },
             onFeedbackClicked = { item, feedbackType -> submitItemFeedback(item, feedbackType) },
@@ -373,6 +375,24 @@ class HomeFeedFragment : Fragment() {
                 getString(R.string.share_link),
             ),
         )
+    }
+
+    /**
+     * Fills the three "how to share" rows on the empty screen.
+     *
+     * Static content, so it is set once here rather than on every history refresh.
+     */
+    private fun renderEmptyStateGuide() {
+        listOf(
+            Triple(binding.emptyStep1, R.string.home_empty_step_1, R.drawable.ic_share_upload),
+            Triple(binding.emptyStep2, R.string.home_empty_step_2, R.drawable.ic_shield_check),
+            Triple(binding.emptyStep3, R.string.home_empty_step_3, R.drawable.ic_check_badge),
+        ).forEachIndexed { index, (step, textRes, iconRes) ->
+            step.stepNumberTextView.text = (index + 1).toString()
+            step.stepIconImageView.setImageResource(iconRes)
+            step.stepTextTextView.text =
+                HtmlCompat.fromHtml(getString(textRes), HtmlCompat.FROM_HTML_MODE_LEGACY)
+        }
     }
 
     private fun submitPastedUrl() {

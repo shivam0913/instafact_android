@@ -34,6 +34,12 @@ import com.instafact.app.utils.applySystemBarInsets
 import com.instafact.app.utils.configureSystemBars
 import com.instafact.app.viewmodel.LoginUiModel
 import com.instafact.app.viewmodel.LoginViewModel
+import android.os.SystemClock
+import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
+import com.instafact.app.viewmodel.LoginStep
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 
 class LoginActivity : AppCompatActivity() {
 
@@ -55,6 +61,40 @@ class LoginActivity : AppCompatActivity() {
 
     private val sharedUrl: String?
         get() = intent.getStringExtra(IntentExtras.EXTRA_SHARED_URL)
+
+    private var lastBackPressedAt: Long = 0L
+
+    /**
+     * Back must not drop someone out of sign-up by accident.
+     *
+     * From the OTP step it returns to the phone field, which is what the on-screen back
+     * arrow already does. From the phone step it takes two presses within the window to
+     * leave, matching HomeActivity.
+     */
+    private fun setupBackPressHandling() {
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (viewModel.uiState.value?.step == LoginStep.OTP) {
+                        viewModel.editPhoneNumber()
+                        return
+                    }
+                    val now = SystemClock.elapsedRealtime()
+                    if (now - lastBackPressedAt < DOUBLE_BACK_WINDOW_MS) {
+                        finish()
+                        return
+                    }
+                    lastBackPressedAt = now
+                    Toast.makeText(
+                        this@LoginActivity,
+                        getString(R.string.press_back_again_to_exit),
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+            },
+        )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,6 +118,7 @@ class LoginActivity : AppCompatActivity() {
 
         renderBrand()
         setupOtpBoxes()
+        setupBackPressHandling()
         binding.otpSentToTextView.text = getString(R.string.otp_sent_to, LoginViewModel.OTP_LENGTH)
 
         binding.requestOtpButton.setOnClickListener {
@@ -318,71 +359,54 @@ class LoginActivity : AppCompatActivity() {
         val genderOptions = genderOptions()
         val ageGroupOptions = ageGroupOptions()
 
-        setupDropdown(dialogBinding.genderAutoCompleteTextView, genderOptions.map { it.first })
-        setupDropdown(dialogBinding.ageGroupAutoCompleteTextView, ageGroupOptions.map { it.first })
-
+        // Chips instead of dropdowns: with three and six short options respectively, a
+        // tap beats opening a menu, and it matches the filter chips on Home.
+        dialogBinding.genderChipGroup.addChoiceChips(genderOptions, profile.gender)
+        dialogBinding.ageGroupChipGroup.addChoiceChips(ageGroupOptions, profile.ageGroup)
         dialogBinding.nameEditText.setText(profile.name.orEmpty())
-        dialogBinding.genderAutoCompleteTextView.setText(
-            genderOptions.firstOrNull { it.second == profile.gender }?.first.orEmpty(),
-            false,
-        )
-        dialogBinding.ageGroupAutoCompleteTextView.setText(
-            ageGroupOptions.firstOrNull { it.second == profile.ageGroup }?.first.orEmpty(),
-            false,
-        )
 
-        val dialog = MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.profile_completion_title)
+        val dialog = MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_Instafact_Dialog)
             .setView(dialogBinding.root)
             .setCancelable(false)
-            .setNegativeButton(R.string.profile_complete_skip) { _, _ ->
-                completionDialogBinding = null
-                viewModel.skipProfileCompletion()
-            }
-            .setPositiveButton(R.string.profile_complete_now, null)
             .create()
 
-        dialog.setOnDismissListener {
-            completionDialogBinding = null
+        dialog.setOnDismissListener { completionDialogBinding = null }
+
+        fun showError(message: String) {
+            dialogBinding.profileErrorTextView.isVisible = true
+            dialogBinding.profileErrorTextView.text = message
         }
 
-        dialog.setOnShowListener {
-            dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val fullName = dialogBinding.nameEditText.text?.toString()?.trim().orEmpty()
-                val gender = genderOptions.firstOrNull {
-                    it.first == dialogBinding.genderAutoCompleteTextView.text?.toString().orEmpty()
-                }?.second
-                val ageGroup = ageGroupOptions.firstOrNull {
-                    it.first == dialogBinding.ageGroupAutoCompleteTextView.text?.toString().orEmpty()
-                }?.second
+        dialogBinding.profileSkipButton.setOnClickListener {
+            completionDialogBinding = null
+            dialog.dismiss()
+            viewModel.skipProfileCompletion()
+        }
 
-                when {
-                    fullName.isBlank() -> {
-                        dialogBinding.nameEditText.error = getString(R.string.profile_name_required)
-                    }
+        dialogBinding.profileSaveButton.setOnClickListener {
+            val fullName = dialogBinding.nameEditText.text?.toString()?.trim().orEmpty()
+            val gender = dialogBinding.genderChipGroup.selectedValue()
+            val ageGroup = dialogBinding.ageGroupChipGroup.selectedValue()
 
-                    gender.isNullOrBlank() -> {
-                        dialogBinding.genderAutoCompleteTextView.error = getString(R.string.profile_gender_required)
-                    }
-
-                    ageGroup.isNullOrBlank() -> {
-                        dialogBinding.ageGroupAutoCompleteTextView.error = getString(R.string.profile_age_group_required)
-                    }
-
-                    else -> {
-                        dialogBinding.nameEditText.error = null
-                        dialogBinding.genderAutoCompleteTextView.error = null
-                        dialogBinding.ageGroupAutoCompleteTextView.error = null
-                        viewModel.completeProfile(
-                            fullName = fullName,
-                            gender = gender,
-                            ageGroup = ageGroup,
-                        )
-                    }
+            when {
+                fullName.isBlank() -> showError(getString(R.string.profile_name_required))
+                gender.isNullOrBlank() -> showError(getString(R.string.profile_gender_required))
+                ageGroup.isNullOrBlank() -> showError(getString(R.string.profile_age_group_required))
+                else -> {
+                    dialogBinding.profileErrorTextView.isVisible = false
+                    dialog.dismiss()
+                    viewModel.completeProfile(
+                        fullName = fullName,
+                        gender = gender,
+                        ageGroup = ageGroup,
+                    )
                 }
             }
         }
 
+        dialog.window?.setBackgroundDrawable(
+            ContextCompat.getDrawable(this, R.drawable.bg_dialog_surface),
+        )
         dialog.show()
     }
 
@@ -405,4 +429,38 @@ class LoginActivity : AppCompatActivity() {
         "45-54" to "45_54",
         "55+" to "55_plus",
     )
+
+    /**
+     * Fills a ChipGroup from (label, value) pairs and preselects [selectedValue].
+     * The stored value rides on the chip's tag so the label can be reworded freely.
+     */
+    private fun ChipGroup.addChoiceChips(
+        options: List<Pair<String, String>>,
+        selectedValue: String?,
+    ) {
+        removeAllViews()
+        options.forEach { (label, value) ->
+            addView(
+                Chip(context).apply {
+                    text = label
+                    tag = value
+                    isCheckable = true
+                    isCheckedIconVisible = true
+                    isChecked = value == selectedValue
+                },
+            )
+        }
+    }
+
+    private fun ChipGroup.selectedValue(): String? {
+        return (0 until childCount)
+            .mapNotNull { getChildAt(it) as? Chip }
+            .firstOrNull { it.isChecked }
+            ?.tag as? String
+    }
+
+    private companion object {
+        /** Same window HomeActivity uses, so back behaves consistently across the app. */
+        const val DOUBLE_BACK_WINDOW_MS = 2000L
+    }
 }

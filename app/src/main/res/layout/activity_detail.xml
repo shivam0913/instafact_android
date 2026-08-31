@@ -451,61 +451,106 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="16dp">
-
-                    <FrameLayout
-                        android:layout_width="44dp"
-                        android:layout_height="44dp">
-
-                        <ProgressBar
-                            android:id="@+id/inProgressSpinner"
-                            style="?android:attr/progressBarStyle"
-                            android:layout_width="34dp"
-                            android:layout_height="34dp"
-                            android:layout_gravity="center"
-                            android:indeterminate="true"
-                            android:indeterminateTint="@color/brand_primary" />
-
-                        <ImageView
-                            android:id="@+id/inProgressIconImageView"
-                            android:layout_width="18dp"
-                            android:layout_height="18dp"
-                            android:layout_gravity="center"
-                            android:contentDescription="@null"
-                            android:src="@drawable/ic_clock_outline"
-                            app:tint="@color/brand_primary" />
-                    </FrameLayout>
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
-                        android:layout_weight="1"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <FrameLayout
+                            android:layout_width="44dp"
+                            android:layout_height="44dp">
+
+                            <ProgressBar
+                                android:id="@+id/inProgressSpinner"
+                                style="?android:attr/progressBarStyle"
+                                android:layout_width="34dp"
+                                android:layout_height="34dp"
+                                android:layout_gravity="center"
+                                android:indeterminate="true"
+                                android:indeterminateTint="@color/brand_primary" />
+
+                            <ImageView
+                                android:id="@+id/inProgressIconImageView"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_gravity="center"
+                                android:contentDescription="@null"
+                                android:src="@drawable/ic_clock_outline"
+                                app:tint="@color/brand_primary" />
+                        </FrameLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/inProgressTitleTextView"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/inter"
+                                android:text="@string/detail_in_progress_title"
+                                android:textColor="@color/brand_ink"
+                                android:textSize="17sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/inProgressBodyTextView"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:fontFamily="@font/inter"
+                                android:lineSpacingExtra="2dp"
+                                android:text="@string/detail_in_progress_body"
+                                android:textColor="@color/brand_muted"
+                                android:textSize="13.5sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Placeholder bars stand in for the result that is being written,
+                         so the wait reads as work in progress rather than a dead screen. -->
+                    <LinearLayout
+                        android:id="@+id/inProgressShimmerContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
                         android:orientation="vertical">
 
-                        <TextView
-                            android:id="@+id/inProgressTitleTextView"
+                        <com.instafact.app.utils.ShimmerView
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/inter"
-                            android:text="@string/detail_in_progress_title"
-                            android:textColor="@color/brand_ink"
-                            android:textSize="13.5sp"
-                            android:textStyle="bold" />
+                            android:layout_height="12dp" />
 
-                        <TextView
-                            android:id="@+id/inProgressBodyTextView"
+                        <com.instafact.app.utils.ShimmerView
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:fontFamily="@font/inter"
-                            android:lineSpacingExtra="2dp"
-                            android:text="@string/detail_in_progress_body"
-                            android:textColor="@color/brand_muted"
-                            android:textSize="11.5sp" />
+                            android:layout_height="12dp"
+                            android:layout_marginTop="10dp" />
+
+                        <com.instafact.app.utils.ShimmerView
+                            android:layout_width="180dp"
+                            android:layout_height="12dp"
+                            android:layout_marginTop="10dp" />
                     </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/retryCheckButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="18dp"
+                        android:background="@drawable/bg_auth_cta"
+                        android:fontFamily="@font/inter"
+                        android:gravity="center"
+                        android:text="@string/detail_retry_check"
+                        android:textColor="@color/white"
+                        android:textSize="14.5sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

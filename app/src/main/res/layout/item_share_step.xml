@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  One row of the "how to share" guide on the empty home screen: a numbered badge, an
+  icon, and a short line of copy. Included three times rather than duplicated inline so
+  the three steps stay visually identical.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_walk_card"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="14dp"
+    android:paddingTop="14dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="14dp">
+
+    <TextView
+        android:id="@+id/stepNumberTextView"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:background="@drawable/bg_walk_logo_tile"
+        android:fontFamily="@font/inter"
+        android:gravity="center"
+        android:textColor="@color/brand_primary"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        tools:text="1" />
+
+    <ImageView
+        android:id="@+id/stepIconImageView"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginStart="12dp"
+        android:contentDescription="@null"
+        app:tint="@color/brand_primary"
+        tools:src="@drawable/ic_share_upload" />
+
+    <TextView
+        android:id="@+id/stepTextTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:fontFamily="@font/inter"
+        android:lineSpacingExtra="2dp"
+        android:textColor="@color/brand_text"
+        android:textSize="13.5sp"
+        tools:text="Open a Reel in Instagram and tap Share" />
+</LinearLayout>
