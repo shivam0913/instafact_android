@@ -14,6 +14,7 @@ import com.instafact.app.data.model.ExploreItemResponse
 import com.instafact.app.databinding.FragmentExploreBinding
 import com.instafact.app.ui.detail.DetailActivity
 import com.instafact.app.ui.home.HomeActivity
+import com.instafact.app.utils.Analytics
 import com.instafact.app.utils.IntentExtras
 import com.instafact.app.utils.UiState
 import com.instafact.app.utils.ViewModelFactory
@@ -43,16 +44,20 @@ class ExploreFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val clickHandler: (ExploreItemResponse) -> Unit = { item ->
+        Analytics.logScreenView("explore", "ExploreFragment")
+        // Which row a tap came from is the useful signal here (is trending or recent
+        // actually driving opens?); the adapters do not surface an index to report.
+        fun clickHandlerFor(section: String): (ExploreItemResponse) -> Unit = { item ->
+            Analytics.logExploreItemOpened(item.queryId, section)
             startActivity(
                 Intent(requireContext(), DetailActivity::class.java).apply {
                     putExtra(IntentExtras.EXTRA_QUERY_ID, item.queryId)
                 },
             )
         }
-        trendingAdapter = ExploreHighlightAdapter(clickHandler)
-        sharedAdapter = ExploreHighlightAdapter(clickHandler)
-        recentAdapter = ExploreAdapter(clickHandler)
+        trendingAdapter = ExploreHighlightAdapter(clickHandlerFor("trending"))
+        sharedAdapter = ExploreHighlightAdapter(clickHandlerFor("shared"))
+        recentAdapter = ExploreAdapter(clickHandlerFor("recent"))
 
         binding.trendingRecyclerView.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)

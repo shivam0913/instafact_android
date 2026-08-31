@@ -8,6 +8,7 @@ import com.instafact.app.data.model.ChatMessageItem
 import com.instafact.app.data.model.DetailResponse
 import com.instafact.app.data.model.FeedbackType
 import com.instafact.app.data.repository.SubmissionRepository
+import com.instafact.app.utils.Analytics
 import com.instafact.app.utils.UiState
 import kotlinx.coroutines.launch
 
@@ -60,6 +61,8 @@ class DetailViewModel(
     }
 
     fun sendChatMessage(queryId: Int, message: String) {
+        // Length only. The question itself is user content and never leaves the device.
+        Analytics.logChatMessageSent(queryId, message.length)
         _chatSendState.value = UiState.Loading
         viewModelScope.launch {
             submissionRepository.sendChatMessage(queryId, message)
@@ -73,11 +76,12 @@ class DetailViewModel(
         }
     }
 
-    fun submitFeedback(queryId: Int, feedbackType: FeedbackType) {
+    fun submitFeedback(queryId: Int, feedbackType: FeedbackType, verdict: String? = null) {
         _feedbackState.value = UiState.Loading
         viewModelScope.launch {
             submissionRepository.submitFeedback(queryId, feedbackType)
                 .onSuccess { response ->
+                    Analytics.logFeedbackSubmitted(queryId, feedbackType.name.lowercase(), verdict)
                     _feedbackState.value = UiState.Success(response.message)
                     loadDetail(queryId)
                 }

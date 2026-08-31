@@ -1,5 +1,7 @@
 package com.instafact.app.data.api
 
+import com.instafact.app.data.model.AppFeedbackRequest
+import com.instafact.app.data.model.AppFeedbackResponse
 import com.instafact.app.data.model.ChatHistoryResponse
 import com.instafact.app.data.model.ChatMessageRequest
 import com.instafact.app.data.model.ChatMessageResponse
@@ -81,6 +83,11 @@ interface ApiService {
     suspend fun submitFeedback(
         @Body request: FeedbackRequest,
     ): FeedbackResponse
+
+    @POST("app-feedback")
+    suspend fun submitAppFeedback(
+        @Body request: AppFeedbackRequest,
+    ): AppFeedbackResponse
 
     @GET("history")
     suspend fun getHistory(

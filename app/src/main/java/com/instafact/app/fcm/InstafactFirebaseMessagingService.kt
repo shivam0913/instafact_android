@@ -5,6 +5,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.instafact.app.InstafactApplication
 import com.instafact.app.R
+import com.instafact.app.utils.Analytics
 import com.instafact.app.utils.IntentExtras
 import com.instafact.app.utils.NotificationHelper
 import com.instafact.app.utils.NotificationStore
@@ -41,6 +42,8 @@ class InstafactFirebaseMessagingService : FirebaseMessagingService() {
         // Record it first so the in-app list stays correct even if posting the tray
         // notification is blocked (permission denied, channel muted).
         NotificationStore(this).add(title = title, body = body, queryId = queryId)
+        // Paired with push_opened, this gives the delivered -> opened rate.
+        Analytics.logPushReceived(queryId)
 
         if (queryId == null) {
             Log.w(TAG, "Push received without a query_id payload; stored without a deep link.")

@@ -188,6 +188,31 @@
     <string name="notification_title">Instafact result ready</string>
     <string name="notification_body">Tap to open the fact-check result.</string>
     <string name="unsupported_url">Share an Instagram Reel or YouTube Short URL.</string>
+
+    <!-- Unsupported platform: decline warmly, promise more, and keep it to two lines. -->
+    <string name="unsupported_platform_title">Not just yet!</string>
+    <string name="unsupported_platform_body">Right now we can fact-check Instagram and YouTube links only.\n\nMore platforms are coming very soon — we\'ll let you know the moment they\'re ready.</string>
+    <string name="unsupported_platform_action">Got it</string>
+
+    <!-- Rating flow -->
+    <string name="rating_title">Enjoying Instafact?</string>
+    <string name="rating_subtitle">Tap a star to rate your experience</string>
+    <string name="rating_not_now">Not now</string>
+    <string name="rating_submit">Submit</string>
+    <string name="rating_thanks">Thanks for the feedback!</string>
+    <string name="rating_star_content_description">Rate %1$d star out of 5</string>
+
+    <string name="rating_feedback_title">How can we improve?</string>
+    <string name="rating_feedback_subtitle">Tell us what went wrong — pick anything that applies.</string>
+    <string name="rating_feedback_reason_ui">The app is hard to use</string>
+    <string name="rating_feedback_reason_accuracy">The fact-check looked wrong</string>
+    <string name="rating_feedback_reason_slow">Results take too long</string>
+    <string name="rating_feedback_reason_platforms">My platform isn\'t supported</string>
+    <string name="rating_feedback_reason_notifications">Notification problems</string>
+    <string name="rating_feedback_reason_other">Something else</string>
+    <string name="rating_feedback_comment_hint">Anything else you\'d like to tell us? (optional)</string>
+    <string name="rating_feedback_send">Send feedback</string>
+    <string name="rating_feedback_thanks">Thank you — we\'re on it.</string>
     <string name="phone_required">Enter a valid phone number.</string>
     <string name="otp_required">Enter the OTP sent to your phone.</string>
     <string name="missing_query_id">Could not open this result.</string>

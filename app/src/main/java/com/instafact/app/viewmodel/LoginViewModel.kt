@@ -8,6 +8,7 @@ import com.instafact.app.data.repository.AuthRepository
 import com.instafact.app.data.repository.ProfileRepository
 import com.instafact.app.data.model.UserProfileResponse
 import com.instafact.app.data.model.UserProfileUpdateRequest
+import com.instafact.app.utils.Analytics
 import com.instafact.app.utils.Countries
 import com.instafact.app.utils.Country
 import kotlinx.coroutines.Job
@@ -93,6 +94,7 @@ class LoginViewModel(
         viewModelScope.launch {
             authRepository.requestOtp(phoneNumber, country.dialCode)
                 .onSuccess {
+                    Analytics.logOtpRequested(country.dialCode, isResend = false)
                     startOtpStep(phoneNumber, it.message)
                 }
                 .onFailure { error ->
@@ -124,6 +126,7 @@ class LoginViewModel(
         viewModelScope.launch {
             authRepository.resendOtp(phoneNumber, country.dialCode)
                 .onSuccess {
+                    Analytics.logOtpRequested(country.dialCode, isResend = true)
                     startOtpStep(phoneNumber, it.message)
                 }
                 .onFailure { error ->
@@ -166,12 +169,23 @@ class LoginViewModel(
         viewModelScope.launch {
             authRepository.verifyOtp(phoneNumber, country.dialCode, otp)
                 .onSuccess {
+                    Analytics.logOtpVerified(success = true)
+                    // The id has to be set before any later event, otherwise this session's
+                    // activity is attributed to an anonymous user in GA.
+                    Analytics.setUserId(it.userId)
+                    Analytics.setUserProperties(
+                        countryCode = country.dialCode,
+                        gender = null,
+                        ageGroup = null,
+                    )
+                    Analytics.logLoginCompleted()
                     // Covers the case where Firebase had not issued a token yet at sign-in,
                     // so verify-otp sent none and the server could not push to this device.
                     authRepository.ensureFcmTokenRegistered()
                     fetchProfileAfterLogin()
                 }
                 .onFailure { error ->
+                    Analytics.logOtpVerified(success = false, failureReason = error.message)
                     _uiState.value = _uiState.value?.copy(
                         step = LoginStep.OTP,
                         isLoading = false,
@@ -213,6 +227,14 @@ class LoginViewModel(
                     ageGroup = ageGroup,
                 ),
             ).onSuccess {
+                // Demographics arrive here, not at sign-in, so this is where they can
+                // start segmenting reports.
+                Analytics.setUserProperties(
+                    countryCode = null,
+                    gender = gender,
+                    ageGroup = ageGroup,
+                )
+                Analytics.logProfileCompleted(skipped = false)
                 _uiState.value = _uiState.value?.copy(
                     isLoading = false,
                     errorMessage = null,
@@ -229,6 +251,7 @@ class LoginViewModel(
     }
 
     fun skipProfileCompletion() {
+        Analytics.logProfileCompleted(skipped = true)
         _profileCompletionRequired.value = null
         _loginComplete.value = true
     }

@@ -25,6 +25,7 @@ import com.instafact.app.data.api.SessionExpiryHandler
 import com.instafact.app.databinding.ActivityLoginBinding
 import com.instafact.app.databinding.DialogCompleteProfileBinding
 import com.instafact.app.ui.home.HomeActivity
+import com.instafact.app.utils.Analytics
 import com.instafact.app.utils.Countries
 import com.instafact.app.utils.Country
 import com.instafact.app.utils.IntentExtras
@@ -67,6 +68,7 @@ class LoginActivity : AppCompatActivity() {
 
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        Analytics.logScreenView("login", "LoginActivity")
         configureSystemBars(
             statusBarColorRes = R.color.brand_surface,
             navigationBarColorRes = R.color.brand_surface,

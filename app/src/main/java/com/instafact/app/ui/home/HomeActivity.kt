@@ -28,12 +28,15 @@ import com.instafact.app.ui.explore.ExploreFragment
 import com.instafact.app.ui.login.LoginActivity
 import com.instafact.app.ui.profile.ProfileFragment
 import com.instafact.app.ui.splash.SplashActivity
+import com.instafact.app.utils.Analytics
 import com.instafact.app.utils.IntentExtras
 import com.instafact.app.utils.UiState
 import com.instafact.app.utils.UrlValidator
 import com.instafact.app.utils.ViewModelFactory
+import com.instafact.app.utils.analyticsPlatform
 import com.instafact.app.utils.applySystemBarInsets
 import com.instafact.app.utils.configureSystemBars
+import com.instafact.app.utils.UnsupportedPlatformDialog
 import com.instafact.app.viewmodel.HomeViewModel
 
 class HomeActivity : AppCompatActivity() {
@@ -99,13 +102,14 @@ class HomeActivity : AppCompatActivity() {
         switchTab(R.id.menu_profile)
     }
 
-    fun submitVideoUrl(videoUrl: String) {
+    @JvmOverloads
+    fun submitVideoUrl(videoUrl: String, source: String = Analytics.SOURCE_IN_APP) {
         if (areNotificationsDisabled()) {
             showNotificationPrompt {
-                viewModel.submitSharedUrl(videoUrl)
+                viewModel.submitSharedUrl(videoUrl, source)
             }
         } else {
-            viewModel.submitSharedUrl(videoUrl)
+            viewModel.submitSharedUrl(videoUrl, source)
         }
     }
 
@@ -193,10 +197,12 @@ class HomeActivity : AppCompatActivity() {
     private fun handleIncomingSharedUrl(incomingIntent: Intent?) {
         val sharedUrl = getIncomingSharedUrl(incomingIntent) ?: return
         if (!UrlValidator.isSupportedVideoUrl(sharedUrl)) {
-            Toast.makeText(this, getString(R.string.unsupported_url), Toast.LENGTH_LONG).show()
+            // Worth counting: a spike here tells us which platform to build next.
+            Analytics.logUnsupportedPlatform(sharedUrl.analyticsPlatform())
+            UnsupportedPlatformDialog.show(this)
             return
         }
-        submitVideoUrl(sharedUrl)
+        submitVideoUrl(sharedUrl, Analytics.SOURCE_SHARE_SHEET)
     }
 
     private fun switchTab(itemId: Int) {
@@ -293,6 +299,9 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun logout() {
+        Analytics.logLogout()
+        // Detaches this device's future events from the account that just signed out.
+        Analytics.setUserId(null)
         (application as InstafactApplication).appContainer.preferenceManager.clearUserSession()
         Toast.makeText(this, getString(R.string.logged_out), Toast.LENGTH_SHORT).show()
         startActivity(

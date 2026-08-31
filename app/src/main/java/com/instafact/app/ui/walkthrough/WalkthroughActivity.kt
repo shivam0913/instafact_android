@@ -24,6 +24,7 @@ import com.instafact.app.R
 import com.instafact.app.databinding.ActivityWalkthroughBinding
 import com.instafact.app.ui.home.HomeActivity
 import com.instafact.app.ui.login.LoginActivity
+import com.instafact.app.utils.Analytics
 import com.instafact.app.utils.applySystemBarInsets
 import com.instafact.app.utils.configureSystemBars
 
@@ -99,6 +100,7 @@ class WalkthroughActivity : AppCompatActivity() {
 
         binding = ActivityWalkthroughBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        Analytics.logScreenView("walkthrough", "WalkthroughActivity")
         configureSystemBars(
             statusBarColorRes = R.color.brand_surface,
             navigationBarColorRes = R.color.brand_surface,
@@ -165,6 +167,8 @@ class WalkthroughActivity : AppCompatActivity() {
 
     private val pageCallback = object : ViewPager2.OnPageChangeCallback() {
         override fun onPageSelected(position: Int) {
+            // Shows exactly which onboarding page people drop off on.
+            Analytics.logWalkthroughPageViewed(position)
             renderChrome(position)
         }
 
@@ -306,6 +310,11 @@ class WalkthroughActivity : AppCompatActivity() {
 
     /** Signed-in users continue to Home; everyone else goes on to sign in. */
     private fun finishWalkthrough() {
+        // Skipping before the last page is the drop-off signal worth separating out.
+        val lastPageIndex = (binding.walkthroughViewPager.adapter?.itemCount ?: 0) - 1
+        Analytics.logWalkthroughCompleted(
+            skipped = binding.walkthroughViewPager.currentItem < lastPageIndex,
+        )
         val loggedIn = (application as InstafactApplication)
             .appContainer.preferenceManager.isLoggedIn()
         val destination = if (loggedIn) {

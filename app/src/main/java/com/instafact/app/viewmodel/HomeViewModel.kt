@@ -9,7 +9,9 @@ import com.instafact.app.data.model.FeedbackType
 import com.instafact.app.data.model.HistoryItemResponse
 import com.instafact.app.data.model.SubmitResponse
 import com.instafact.app.data.repository.SubmissionRepository
+import com.instafact.app.utils.Analytics
 import com.instafact.app.utils.UiState
+import com.instafact.app.utils.analyticsPlatform
 import kotlinx.coroutines.launch
 
 class HomeViewModel(
@@ -69,24 +71,34 @@ class HomeViewModel(
         }
     }
 
-    fun submitSharedUrl(videoUrl: String) {
+    /**
+     * [source] records how the link reached the app (share sheet vs pasted in-app).
+     * Both entry points funnel through here, so this is the one place the whole submit
+     * funnel can be measured.
+     */
+    fun submitSharedUrl(videoUrl: String, source: String = Analytics.SOURCE_IN_APP) {
+        val platform = videoUrl.analyticsPlatform()
+        Analytics.logSubmitStarted(platform, source)
         _submitState.value = UiState.Loading
         viewModelScope.launch {
             submissionRepository.submitVideo(videoUrl)
                 .onSuccess { response ->
+                    Analytics.logSubmitSucceeded(platform, response.queryId)
                     _submitState.value = UiState.Success(response)
                 }
                 .onFailure { error ->
+                    Analytics.logSubmitFailed(platform, error.message.orEmpty())
                     _submitState.value = UiState.Error(error.message.orEmpty())
                 }
         }
     }
 
-    fun submitFeedback(queryId: Int, feedbackType: FeedbackType) {
+    fun submitFeedback(queryId: Int, feedbackType: FeedbackType, verdict: String? = null) {
         _feedbackState.value = UiState.Loading
         viewModelScope.launch {
             submissionRepository.submitFeedback(queryId, feedbackType)
                 .onSuccess { response ->
+                    Analytics.logFeedbackSubmitted(queryId, feedbackType.name.lowercase(), verdict)
                     _feedbackState.value = UiState.Success(response.message)
                     loadHistory()
                 }
@@ -101,6 +113,7 @@ class HomeViewModel(
         viewModelScope.launch {
             submissionRepository.deleteHistory(queryId)
                 .onSuccess { response ->
+                    Analytics.logHistoryItemDeleted(queryId)
                     _deleteState.value = UiState.Success(response.message)
                     loadHistory()
                 }

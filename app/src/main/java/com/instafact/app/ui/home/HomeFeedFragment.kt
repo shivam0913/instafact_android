@@ -29,6 +29,7 @@ import com.instafact.app.data.model.FeedbackType
 import com.instafact.app.data.model.HistoryItemResponse
 import com.instafact.app.databinding.FragmentHomeFeedBinding
 import com.instafact.app.ui.detail.DetailActivity
+import com.instafact.app.utils.Analytics
 import com.instafact.app.utils.IntentExtras
 import com.instafact.app.ui.notifications.NotificationsActivity
 import com.instafact.app.utils.NotificationStore
@@ -40,6 +41,8 @@ import com.instafact.app.utils.verdictShortLabel
 import com.instafact.app.utils.UiState
 import com.instafact.app.utils.UrlValidator
 import com.instafact.app.utils.ViewModelFactory
+import com.instafact.app.utils.UnsupportedPlatformDialog
+import com.instafact.app.utils.analyticsPlatform
 import com.instafact.app.viewmodel.HomeViewModel
 import androidx.fragment.app.activityViewModels
 
@@ -67,11 +70,13 @@ class HomeFeedFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        Analytics.logScreenView("home_feed", "HomeFeedFragment")
         submissionAdapter = SubmissionAdapter(
             userVoteLookup = { queryId -> viewModel.getUserVoteType(queryId) },
             onFeedbackClicked = { item, feedbackType -> submitItemFeedback(item, feedbackType) },
             onMoreClicked = { anchor, item -> showItemMenu(anchor, item) },
         ) { item ->
+            Analytics.logHistoryItemOpened(item.queryId)
             startActivity(
                 Intent(requireContext(), DetailActivity::class.java).apply {
                     putExtra(IntentExtras.EXTRA_QUERY_ID, item.queryId)
@@ -379,11 +384,10 @@ class HomeFeedFragment : Fragment() {
                 Toast.LENGTH_SHORT,
             ).show()
 
-            !UrlValidator.isSupportedVideoUrl(videoUrl) -> Toast.makeText(
-                requireContext(),
-                getString(R.string.unsupported_url),
-                Toast.LENGTH_SHORT,
-            ).show()
+            !UrlValidator.isSupportedVideoUrl(videoUrl) -> {
+                Analytics.logUnsupportedPlatform(videoUrl.analyticsPlatform())
+                UnsupportedPlatformDialog.show(requireContext())
+            }
 
             else -> (activity as? HomeActivity)?.submitVideoUrl(videoUrl) ?: viewModel.submitSharedUrl(videoUrl)
         }

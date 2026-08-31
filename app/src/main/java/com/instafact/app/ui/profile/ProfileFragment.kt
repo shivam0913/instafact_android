@@ -29,11 +29,13 @@ import com.instafact.app.InstafactApplication
 import com.instafact.app.R
 import com.instafact.app.data.model.UserProfileResponse
 import com.instafact.app.ui.notifications.NotificationsActivity
+import com.instafact.app.ui.rating.RatingPrompt
 import com.instafact.app.data.model.UserProfileUpdateRequest
 import com.instafact.app.databinding.DialogEditProfileBinding
 import com.instafact.app.databinding.FragmentProfileBinding
 import com.instafact.app.ui.support.HelpSupportActivity
 import com.instafact.app.ui.splash.SplashActivity
+import com.instafact.app.utils.Analytics
 import com.instafact.app.utils.SessionDebugLogger
 import com.instafact.app.utils.toInstantOrNull
 import com.instafact.app.utils.UiState
@@ -82,6 +84,7 @@ class ProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        Analytics.logScreenView("profile", "ProfileFragment")
 
         renderBrand()
         renderFallbackProfile()
@@ -107,7 +110,16 @@ class ProfileFragment : Fragment() {
         binding.privacyButton.setOnClickListener {
             showPrivacyPolicyDialog()
         }
-        binding.rateUsButton.setOnClickListener { openAppRating() }
+        // Always shows, unlike the first-result trigger: tapping "Rate us" is an explicit
+        // request, so a previous rating must not silence it.
+        binding.rateUsButton.setOnClickListener {
+            RatingPrompt.show(
+                context = requireContext(),
+                preferenceManager = (requireActivity().application as InstafactApplication)
+                    .appContainer.preferenceManager,
+                trigger = RatingPrompt.TRIGGER_PROFILE,
+            )
+        }
         binding.logoutButton.setOnClickListener {
             viewModel.logout()
             Toast.makeText(requireContext(), getString(R.string.logged_out), Toast.LENGTH_SHORT).show()
@@ -408,19 +420,6 @@ class ProfileFragment : Fragment() {
         val clipboardManager = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboardManager.setPrimaryClip(ClipData.newPlainText(getString(R.string.profile_referral_code), referralCode))
         Toast.makeText(requireContext(), getString(R.string.copied_to_clipboard), Toast.LENGTH_SHORT).show()
-    }
-
-    private fun openAppRating() {
-        val packageName = requireContext().packageName
-        val marketIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName"))
-        val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$packageName"))
-        runCatching {
-            startActivity(marketIntent)
-        }.recoverCatching {
-            startActivity(webIntent)
-        }.onFailure {
-            Toast.makeText(requireContext(), getString(R.string.play_store_unavailable), Toast.LENGTH_SHORT).show()
-        }
     }
 
     private fun showPrivacyPolicyDialog() {

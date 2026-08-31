@@ -37,6 +37,22 @@ fun String.platformBadge(context: Context): String {
     }
 }
 
+/**
+ * Stable, lowercase platform key for analytics.
+ *
+ * Deliberately not one of the platformLabel helpers: those return localized strings, so
+ * a Hindi-locale device would report a different value for the same platform and split
+ * every report in two.
+ */
+fun String.analyticsPlatform(): String {
+    val value = lowercase()
+    return when {
+        value.contains("instagram") -> "instagram"
+        value.contains("youtube") || value.contains("youtu.be") -> "youtube"
+        else -> "other"
+    }
+}
+
 fun String.platformSourceLabel(context: Context): String {
     val value = lowercase()
     return when {

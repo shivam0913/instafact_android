@@ -6,6 +6,8 @@ object IntentExtras {
     const val EXTRA_URL = "extra_url"
     const val EXTRA_TITLE = "extra_title"
     const val EXTRA_SESSION_EXPIRED = "extra_session_expired"
+    /** Set only by the tray notification, so a push-open can be told from a normal open. */
+    const val EXTRA_FROM_NOTIFICATION = "extra_from_notification"
     const val EXTRA_DEFAULT_TAB = "extra_default_tab"
     const val TAB_HOME = "home"
     const val TAB_EXPLORE = "explore"

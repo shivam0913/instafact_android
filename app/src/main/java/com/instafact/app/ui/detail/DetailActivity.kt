@@ -36,11 +36,14 @@ import com.instafact.app.databinding.ActivityDetailBinding
 import com.instafact.app.databinding.DialogReferencesBinding
 import com.instafact.app.ui.login.LoginActivity
 import com.instafact.app.ui.webview.InAppBrowserActivity
+import com.instafact.app.ui.rating.RatingPrompt
+import com.instafact.app.utils.Analytics
 import com.instafact.app.utils.HtmlRenderer
 import com.instafact.app.utils.IntentExtras
 import com.instafact.app.utils.MarkdownRenderer
 import com.instafact.app.utils.UiState
 import com.instafact.app.utils.ViewModelFactory
+import com.instafact.app.utils.analyticsPlatform
 import com.instafact.app.utils.applySystemBarInsets
 import com.instafact.app.utils.configureSystemBars
 import com.instafact.app.utils.displayVerdict
@@ -66,6 +69,7 @@ class DetailActivity : AppCompatActivity() {
         private const val MENU_COPY = 3
         private const val MAX_INLINE_REFERENCES = 3
         private const val MAX_VISIBLE_TAGS = 3
+        private const val RATING_PROMPT_DELAY_MS = 900L
     }
 
     private enum class DetailTab {
@@ -117,6 +121,11 @@ class DetailActivity : AppCompatActivity() {
             return
         }
 
+        if (intent.getBooleanExtra(IntentExtras.EXTRA_FROM_NOTIFICATION, false)) {
+            Analytics.logPushOpened(queryId)
+        }
+        Analytics.logScreenView("result_detail", "DetailActivity")
+
         setupUi()
         observeViewModel()
 
@@ -134,14 +143,19 @@ class DetailActivity : AppCompatActivity() {
         binding.videoPreviewContainer.setOnClickListener { openVideoLink() }
         binding.thumbnailImageView.setOnClickListener { openVideoLink() }
         binding.askAiButton.setOnClickListener {
+            Analytics.logChatOpened(queryId)
             startActivity(
                 Intent(this, ChatActivity::class.java).apply {
                     putExtra(IntentExtras.EXTRA_QUERY_ID, queryId)
                 },
             )
         }
-        binding.thumbsUpButton.setOnClickListener { viewModel.submitFeedback(queryId, FeedbackType.UP) }
-        binding.thumbsDownButton.setOnClickListener { viewModel.submitFeedback(queryId, FeedbackType.DOWN) }
+        binding.thumbsUpButton.setOnClickListener {
+            viewModel.submitFeedback(queryId, FeedbackType.UP, currentDetail?.verdict)
+        }
+        binding.thumbsDownButton.setOnClickListener {
+            viewModel.submitFeedback(queryId, FeedbackType.DOWN, currentDetail?.verdict)
+        }
         binding.readMoreTextView.setOnClickListener { toggleExplanationExpanded() }
         binding.tabSummaryContainer.setOnClickListener { selectTab(DetailTab.SUMMARY, true) }
         binding.tabDetailsContainer.setOnClickListener { selectTab(DetailTab.DETAILS, true) }
@@ -218,6 +232,13 @@ class DetailActivity : AppCompatActivity() {
         binding.contentScrollView.visibility = View.VISIBLE
         binding.detailErrorTextView.visibility = View.GONE
 
+        // Fires once per load rather than on every re-render, so repeated feedback taps
+        // or tab switches do not inflate the count.
+        if (currentDetail?.queryId != detail.queryId) {
+            logResultViewed(detail)
+            maybeAskForRating(detail)
+        }
+
         currentDetail = detail
         currentVideoUrl = detail.videoUrl
         currentReferences = extractReferences(detail)
@@ -241,9 +262,8 @@ class DetailActivity : AppCompatActivity() {
         binding.verdictIconImageView.setImageResource(verdictIconRes(detail.verdict))
         renderResultState(resultState)
 
-        val summaryText = extractSummary(detail).ifBlank { getString(R.string.detail_result_pending) }
         binding.resultSummaryTextView.text = buildVerdictBlurb(detail)
-        binding.summaryTextView.text = summaryText
+        renderSummary(detail)
 
         binding.confidenceTextView.text = detail.confidence?.let { getString(R.string.confidence_format, it) }
             ?: getString(R.string.unknown)
@@ -506,6 +526,7 @@ class DetailActivity : AppCompatActivity() {
 
     private fun shareCurrentResult() {
         val detail = currentDetail ?: return
+        Analytics.logResultShared(detail.queryId, detail.verdict)
         val summary = extractSummary(detail).ifBlank {
             getString(R.string.detail_result_pending)
         }
@@ -530,10 +551,12 @@ class DetailActivity : AppCompatActivity() {
     private fun openVideoLink() {
         val url = currentVideoUrl.ifBlank { currentDetail?.videoUrl.orEmpty() }
         if (url.isBlank()) return
+        currentDetail?.let { Analytics.logSourceVideoOpened(it.queryId, url.analyticsPlatform()) }
         startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
     }
 
     private fun openInAppBrowser(url: String, title: String) {
+        currentDetail?.let { Analytics.logReferenceLinkOpened(it.queryId) }
         startActivity(
             Intent(this, InAppBrowserActivity::class.java).apply {
                 putExtra(IntentExtras.EXTRA_URL, url)
@@ -696,6 +719,8 @@ class DetailActivity : AppCompatActivity() {
     private fun showAllReferencesDialog() {
         if (currentReferences.isEmpty()) return
 
+        // Signals whether people actually check the evidence behind a verdict.
+        currentDetail?.let { Analytics.logReferencesOpened(it.queryId, currentReferences.size) }
         val dialogBinding = DialogReferencesBinding.inflate(layoutInflater)
         dialogBinding.referencesDialogTitleTextView.text = getString(
             R.string.detail_references_title_with_count,
@@ -724,6 +749,75 @@ class DetailActivity : AppCompatActivity() {
             ContextCompat.getDrawable(this, R.drawable.bg_dialog_surface),
         )
         dialog.show()
+    }
+
+    /**
+     * Asks for a rating once the user has actually seen the product work: their first
+     * finished result.
+     *
+     * Gated on RESOLVED on purpose - a spinner or an error is the worst possible moment
+     * to ask how much someone likes the app. The milestone is recorded only when the
+     * prompt is genuinely eligible, so a user whose first result failed still gets asked
+     * after their first successful one.
+     */
+    private fun maybeAskForRating(detail: DetailResponse) {
+        if (resultStateOf(detail.status, detail.verdict) != ResultState.RESOLVED) return
+        val preferenceManager =
+            (application as InstafactApplication).appContainer.preferenceManager
+        if (preferenceManager.hasCompletedRatingPrompt()) return
+        if (!preferenceManager.markFirstResultSeenIfNew()) return
+
+        // Let the result render first; a dialog over a half-drawn screen feels abrupt.
+        binding.root.postDelayed(
+            {
+                if (!isFinishing && !isDestroyed) {
+                    RatingPrompt.showIfEligible(
+                        context = this,
+                        preferenceManager = preferenceManager,
+                        trigger = RatingPrompt.TRIGGER_FIRST_RESULT,
+                    )
+                }
+            },
+            RATING_PROMPT_DELAY_MS,
+        )
+    }
+
+    /**
+     * Splits the three outcomes apart: a real verdict, a check still running, and a
+     * failed check. Lumping them together would hide how often people land on a result
+     * screen that has nothing useful on it yet.
+     */
+    private fun logResultViewed(detail: DetailResponse) {
+        when (resultStateOf(detail.status, detail.verdict)) {
+            ResultState.IN_PROGRESS -> Analytics.logResultStillProcessing(detail.queryId)
+            ResultState.FAILED -> Analytics.logResultFailed(detail.queryId)
+            ResultState.RESOLVED -> Analytics.logResultViewed(
+                queryId = detail.queryId,
+                verdict = detail.verdict,
+                confidence = detail.confidence,
+                platform = detail.videoUrl.analyticsPlatform(),
+            )
+        }
+    }
+
+    /**
+     * The summary carries its own structure now - a bold conclusion, then a coloured
+     * claim scoreboard - so flattening it to plain text would throw away the part that
+     * makes it scannable. Plain text stays as the fallback for older rows that only
+     * have the legacy markdown explanation.
+     */
+    private fun renderSummary(detail: DetailResponse) {
+        val summaryHtml = detail.summaryHtml.withoutLeadingHeading().asReadableHtml()
+        if (summaryHtml.isNotBlank()) {
+            HtmlRenderer.render(
+                textView = binding.summaryTextView,
+                html = summaryHtml,
+                onLinkClicked = { openInAppBrowser(it, getString(R.string.chat_source_title)) },
+            )
+            return
+        }
+        binding.summaryTextView.text = extractSummary(detail)
+            .ifBlank { getString(R.string.detail_result_pending) }
     }
 
     private fun extractSummary(detail: DetailResponse): String {

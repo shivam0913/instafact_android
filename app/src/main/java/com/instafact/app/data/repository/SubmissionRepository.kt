@@ -4,6 +4,8 @@ import android.content.Context
 import retrofit2.HttpException
 import com.instafact.app.R
 import com.instafact.app.data.api.ApiService
+import com.instafact.app.data.model.AppFeedbackRequest
+import com.instafact.app.data.model.AppFeedbackResponse
 import com.instafact.app.data.model.ChatHistoryResponse
 import com.instafact.app.data.model.ChatMessageRequest
 import com.instafact.app.data.model.ChatMessageResponse
@@ -179,6 +181,37 @@ class SubmissionRepository(
                 } else {
                     Result.failure(Exception(ApiErrorParser.getMessage(context, throwable), throwable))
                 }
+            },
+        )
+    }
+
+    /**
+     * Sends an app rating with its full comment.
+     *
+     * No local vote guard like submitFeedback has: someone whose complaint we fix should
+     * be able to tell us so later, and the backend keeps every submission on purpose.
+     */
+    suspend fun submitAppFeedback(
+        rating: Int,
+        reasons: List<String>,
+        comment: String?,
+        trigger: String?,
+        appVersion: String?,
+    ): Result<AppFeedbackResponse> = withContext(Dispatchers.IO) {
+        runCatching {
+            apiService.submitAppFeedback(
+                AppFeedbackRequest(
+                    rating = rating,
+                    reasons = reasons,
+                    comment = comment?.takeIf { it.isNotBlank() },
+                    trigger = trigger,
+                    appVersion = appVersion,
+                ),
+            )
+        }.fold(
+            onSuccess = { Result.success(it) },
+            onFailure = { throwable ->
+                Result.failure(Exception(ApiErrorParser.getMessage(context, throwable), throwable))
             },
         )
     }

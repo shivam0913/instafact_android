@@ -105,6 +105,31 @@ class PreferenceManager(context: Context) {
 
     fun isLoggedIn(): Boolean = !getAuthToken().isNullOrBlank() && getUserId() != null
 
+    /**
+     * Rating prompt state.
+     *
+     * Deliberately outside clearUserSession(): someone who already rated (or declined)
+     * should not be asked again just because they signed out and back in.
+     */
+    fun hasCompletedRatingPrompt(): Boolean =
+        sharedPreferences.getBoolean(KEY_RATING_PROMPT_COMPLETED, false)
+
+    fun setRatingPromptCompleted() {
+        sharedPreferences.edit { putBoolean(KEY_RATING_PROMPT_COMPLETED, true) }
+    }
+
+    /**
+     * True the first time a completed result is opened, false afterwards.
+     *
+     * Records the milestone itself rather than counting opens, so the caller cannot
+     * accidentally re-trigger the prompt by revisiting the same result.
+     */
+    fun markFirstResultSeenIfNew(): Boolean {
+        if (sharedPreferences.getBoolean(KEY_FIRST_RESULT_SEEN, false)) return false
+        sharedPreferences.edit { putBoolean(KEY_FIRST_RESULT_SEEN, true) }
+        return true
+    }
+
     fun hasUserVoted(queryId: Int): Boolean {
         return sharedPreferences.getStringSet(KEY_VOTED_QUERY_IDS, emptySet()).orEmpty()
             .contains(queryId.toString())
@@ -207,6 +232,8 @@ class PreferenceManager(context: Context) {
         private const val KEY_SYNCED_FCM_TOKEN = "synced_fcm_token"
         private const val KEY_VOTED_QUERY_IDS = "voted_query_ids"
         private const val KEY_VOTE_TYPES = "vote_types"
+        private const val KEY_RATING_PROMPT_COMPLETED = "rating_prompt_completed"
+        private const val KEY_FIRST_RESULT_SEEN = "first_result_seen"
         private const val KEY_VIDEO_METADATA_TITLE = "video_metadata_title"
         private const val KEY_VIDEO_METADATA_CHANNEL_NAME = "video_metadata_channel_name"
         private const val KEY_VIDEO_METADATA_CREATOR_ID = "video_metadata_creator_id"

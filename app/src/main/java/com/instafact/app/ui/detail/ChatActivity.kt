@@ -13,6 +13,7 @@ import com.instafact.app.R
 import com.instafact.app.databinding.ActivityChatBinding
 import com.instafact.app.ui.login.LoginActivity
 import com.instafact.app.ui.webview.InAppBrowserActivity
+import com.instafact.app.utils.Analytics
 import com.instafact.app.utils.IntentExtras
 import com.instafact.app.utils.UiState
 import com.instafact.app.utils.ViewModelFactory
@@ -35,6 +36,7 @@ class ChatActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityChatBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        Analytics.logScreenView("chat", "ChatActivity")
         configureSystemBars(
             statusBarColorRes = R.color.brand_surface,
             navigationBarColorRes = R.color.brand_surface,

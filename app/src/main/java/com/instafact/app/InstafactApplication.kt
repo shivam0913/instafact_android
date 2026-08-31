@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import com.google.firebase.FirebaseApp
 import com.google.firebase.messaging.FirebaseMessaging
+import com.instafact.app.utils.Analytics
 import com.instafact.app.utils.AppContainer
 import com.instafact.app.utils.NotificationHelper
 import com.instafact.app.utils.SessionDebugLogger
@@ -33,6 +34,11 @@ class InstafactApplication : Application() {
             Log.w(TAG, "Firebase is not configured. Add google-services.json to enable FCM.")
             return
         }
+
+        // Analytics shares the FirebaseApp, so it can only start once that exists.
+        Analytics.initialize(this)
+        // Restores the id on every cold start, so a returning user's sessions stay stitched.
+        Analytics.setUserId(appContainer.preferenceManager.getUserId())
 
         FirebaseMessaging.getInstance().token
             .addOnSuccessListener { token ->

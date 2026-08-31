@@ -40,6 +40,7 @@ object NotificationHelper {
     ) {
         val intent = Intent(context, DetailActivity::class.java).apply {
             putExtra(IntentExtras.EXTRA_QUERY_ID, queryId)
+            putExtra(IntentExtras.EXTRA_FROM_NOTIFICATION, true)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
 

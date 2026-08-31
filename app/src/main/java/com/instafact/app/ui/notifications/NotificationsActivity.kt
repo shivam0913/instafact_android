@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.instafact.app.R
 import com.instafact.app.databinding.ActivityNotificationsBinding
 import com.instafact.app.ui.detail.DetailActivity
+import com.instafact.app.utils.Analytics
 import com.instafact.app.utils.IntentExtras
 import com.instafact.app.utils.NotificationRecord
 import com.instafact.app.utils.NotificationStore
@@ -25,6 +26,7 @@ class NotificationsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityNotificationsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        Analytics.logScreenView("notifications", "NotificationsActivity")
         configureSystemBars(
             statusBarColorRes = R.color.brand_background,
             navigationBarColorRes = R.color.brand_background,
