@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Legacy auto-backup rules (Android 11 and below).
+
+  The session prefs hold the auth token, refresh token and user id. Backing those up
+  meant a reinstall silently restored someone else's - or a stale - signed-in session
+  from Google Drive, and it put bearer tokens in cloud storage. The FCM token in there
+  is device-specific too, so restoring it onto another device is wrong regardless.
+-->
+<full-backup-content>
+    <exclude
+        domain="sharedpref"
+        path="instafact_prefs.xml" />
+</full-backup-content>

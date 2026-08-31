@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+ (API 31) backup and device-transfer rules.
+
+  Mirrors backup_rules.xml. Both are needed: this file covers API 31 and above, the
+  other covers Android 11 and below.
+
+  cloud-backup excludes the session from Google Drive backups; device-transfer excludes
+  it from direct device-to-device migration too, since an auth token belongs to the
+  device that obtained it.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude
+            domain="sharedpref"
+            path="instafact_prefs.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude
+            domain="sharedpref"
+            path="instafact_prefs.xml" />
+    </device-transfer>
+</data-extraction-rules>

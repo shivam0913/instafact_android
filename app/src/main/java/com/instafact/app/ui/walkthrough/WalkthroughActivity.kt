@@ -31,13 +31,6 @@ import com.instafact.app.utils.configureSystemBars
 class WalkthroughActivity : AppCompatActivity() {
 
     companion object {
-        /**
-         * TEMPORARY (testing only): show the walkthrough on every launch instead of only when
-         * signed out. Flip to false to restore the normal first-open behaviour - that single
-         * change reverts both this screen and the splash routing.
-         */
-        const val ALWAYS_SHOW = true
-
         /** How long each slide holds before advancing, story-style. */
         private const val SLIDE_DURATION_MS = 6000L
 
@@ -91,8 +84,11 @@ class WalkthroughActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Onboarding is for signed-out users only. Guarded here as well as in the splash
+        // routing, because the notification deep link and the share flow can both land on
+        // this screen without passing through the splash.
         val preferenceManager = (application as InstafactApplication).appContainer.preferenceManager
-        if (!ALWAYS_SHOW && preferenceManager.isLoggedIn()) {
+        if (preferenceManager.isLoggedIn()) {
             startActivity(Intent(this, HomeActivity::class.java))
             finish()
             return

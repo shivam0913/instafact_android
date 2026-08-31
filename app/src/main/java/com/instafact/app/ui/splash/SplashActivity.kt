@@ -38,11 +38,11 @@ class SplashActivity : AppCompatActivity() {
         binding.root.postDelayed(
             {
                 val preferenceManager = (application as InstafactApplication).appContainer.preferenceManager
-                val destination = when {
-                    // TEMPORARY (testing only): see WalkthroughActivity.ALWAYS_SHOW.
-                    WalkthroughActivity.ALWAYS_SHOW -> Intent(this, WalkthroughActivity::class.java)
-                    preferenceManager.isLoggedIn() -> Intent(this, HomeActivity::class.java)
-                    else -> Intent(this, WalkthroughActivity::class.java)
+                // Signed in goes straight to Home; everyone else sees onboarding first.
+                val destination = if (preferenceManager.isLoggedIn()) {
+                    Intent(this, HomeActivity::class.java)
+                } else {
+                    Intent(this, WalkthroughActivity::class.java)
                 }
                 startActivity(destination)
                 finish()
