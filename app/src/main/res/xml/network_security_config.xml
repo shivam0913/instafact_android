@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Production network policy: HTTPS only.
+
+  The API is https://api.instafact.co/, so there is no legitimate reason for this app to
+  ever speak plaintext. Blocking it outright removes the downgrade path that would
+  otherwise put a bearer token on the wire in the clear on a hostile network.
+
+  The debug source set overrides this file to allow cleartext to a local dev server; that
+  override never reaches a release build.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

@@ -1,8 +1,12 @@
 package com.instafact.app.ui.webview
 
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
+import android.widget.Toast
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -44,6 +48,11 @@ class InAppBrowserActivity : AppCompatActivity() {
         binding.webView.settings.domStorageEnabled = true
         binding.webView.settings.loadsImagesAutomatically = true
         binding.webView.settings.mediaPlaybackRequiresUserGesture = false
+        // Below API 30 these default to true. With JavaScript on, a file:// or content://
+        // URL would let a page read app-private storage, and the URLs reaching this screen
+        // come from fact-check references - i.e. from model web-search output, not from us.
+        binding.webView.settings.allowFileAccess = false
+        binding.webView.settings.allowContentAccess = false
         binding.webView.webChromeClient = object : WebChromeClient() {
             override fun onProgressChanged(view: WebView?, newProgress: Int) {
                 binding.progressBar.visibility = if (newProgress in 1..99) View.VISIBLE else View.GONE
@@ -52,18 +61,49 @@ class InAppBrowserActivity : AppCompatActivity() {
         }
         binding.webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                val nextUrl = request?.url?.toString().orEmpty()
-                if (nextUrl.isBlank()) return false
-                view?.loadUrl(nextUrl)
+                val nextUri = request?.url ?: return false
+                // Anything that is not plain web content - a tel:, mailto:, intent: or
+                // javascript: link - is handed to the system rather than loaded here.
+                if (!nextUri.isWebUrl()) {
+                    openExternally(nextUri)
+                    return true
+                }
+                view?.loadUrl(nextUri.toString())
                 return true
             }
         }
 
-        if (url.isBlank()) {
+        val uri = runCatching { Uri.parse(url) }.getOrNull()
+        if (url.isBlank() || uri == null || !uri.isWebUrl()) {
+            // Nothing sensible to show, and loading it anyway is how a javascript: or
+            // file:// URL would end up executing inside our own WebView.
+            Toast.makeText(this, R.string.link_open_failed, Toast.LENGTH_SHORT).show()
             finish()
         } else {
             binding.webView.loadUrl(url)
         }
+    }
+
+    /** Only http(s) is loaded in-app; every other scheme is somebody else's job. */
+    private fun Uri.isWebUrl(): Boolean =
+        scheme?.lowercase() == "http" || scheme?.lowercase() == "https"
+
+    private fun openExternally(uri: Uri) {
+        runCatching { startActivity(Intent(Intent.ACTION_VIEW, uri)) }
+            .onFailure {
+                Toast.makeText(this, R.string.link_open_failed, Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    override fun onDestroy() {
+        // A WebView left attached keeps the Activity alive; detach it before destroying.
+        if (::binding.isInitialized) binding.webView.let { webView ->
+            (webView.parent as? ViewGroup)?.removeView(webView)
+            webView.stopLoading()
+            webView.webChromeClient = null
+            webView.destroy()
+        }
+        super.onDestroy()
     }
 
     @Deprecated("Deprecated in Java")

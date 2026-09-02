@@ -3,11 +3,98 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
-if (file("google-services.json").exists()) {
-    apply(plugin = "com.google.gms.google-services")
+// Firebase config is tracked in git (it holds no secret - the API key in it is
+// restricted server-side), so every build has it. Applied unconditionally: the plugin
+// used to be skipped when the file was absent, which produced a perfectly valid APK
+// with push notifications and analytics silently switched off.
+apply(plugin = "com.google.gms.google-services")
+
+// Belt and braces for release builds. Without the file the google-services plugin fails
+// with a message about a missing resource; this says what is actually wrong and where to
+// get the file, and fails before anything is compiled.
+tasks.register("verifyFirebaseConfig") {
+    val configFile = file("google-services.json")
+    doLast {
+        if (!configFile.exists()) {
+            throw GradleException(
+                "app/google-services.json is missing. Download it from the Firebase " +
+                    "console (Project settings -> Your apps -> co.instafact) and commit " +
+                    "it. Without it the build produces an app with no push notifications " +
+                    "and no analytics.",
+            )
+        }
+    }
 }
 
-val apiBaseUrl = (project.findProperty("API_BASE_URL") as String? ?: "http://10.0.2.2:8000/")
+// preBuild is the common ancestor of every variant, so this runs before any compilation
+// for assembleDebug, assembleRelease and bundleRelease alike.
+tasks.named("preBuild") { dependsOn("verifyFirebaseConfig") }
+
+// ---------------------------------------------------------------------------
+// Version. Single source of truth is gradle.properties; -PVERSION_CODE and
+// -PVERSION_NAME override it for CI.
+//
+// VERSION_CODE must increase for every upload - Play rejects a bundle that reuses one,
+// and it tells you at upload time, which is a bad moment to find out. verifyReleaseConfig
+// prints what is about to be shipped so a release is never built blind.
+// ---------------------------------------------------------------------------
+val appVersionCode = (project.findProperty("VERSION_CODE") as String?)?.trim()?.toIntOrNull()
+val appVersionName = (project.findProperty("VERSION_NAME") as String?)?.trim()
+
+// ---------------------------------------------------------------------------
+// API base URL. The fallback exists so a fresh clone can build and run against a local
+// server; it is deliberately NOT good enough for a release, which verifyReleaseConfig
+// enforces rather than letting a store-ready bundle point at an emulator address.
+// ---------------------------------------------------------------------------
+val apiBaseUrlProperty = (project.findProperty("API_BASE_URL") as String?)?.trim()?.takeIf { it.isNotEmpty() }
+val apiBaseUrl = apiBaseUrlProperty ?: "http://10.0.2.2:8000/"
+
+tasks.register("verifyReleaseConfig") {
+    val baseUrl = apiBaseUrlProperty
+    val versionCode = appVersionCode
+    val versionName = appVersionName
+    doLast {
+        val problems = mutableListOf<String>()
+
+        when {
+            baseUrl == null ->
+                problems += "API_BASE_URL is not set. Add it to gradle.properties or pass " +
+                    "-PAPI_BASE_URL=https://api.instafact.co/ . Without it the build falls " +
+                    "back to http://10.0.2.2:8000/, an address that only exists inside an emulator."
+            !baseUrl.startsWith("https://") ->
+                problems += "API_BASE_URL is \"$baseUrl\". A release must use https:// - the " +
+                    "network security config blocks cleartext, so this build would fail every " +
+                    "request at runtime."
+            !baseUrl.endsWith("/") ->
+                problems += "API_BASE_URL is \"$baseUrl\". Retrofit requires a base URL ending " +
+                    "in \"/\" and throws on startup otherwise."
+        }
+
+        if (versionCode == null) {
+            problems += "VERSION_CODE is not set or is not a whole number. Set it in gradle.properties."
+        }
+        if (versionName.isNullOrBlank()) {
+            problems += "VERSION_NAME is not set. Set it in gradle.properties."
+        }
+
+        if (problems.isNotEmpty()) {
+            throw GradleException(
+                "Release configuration is not shippable:\n\n" +
+                    problems.joinToString("\n\n") { "  - $it" },
+            )
+        }
+
+        logger.lifecycle("")
+        logger.lifecycle("  Release build -> $versionName ($versionCode) against $baseUrl")
+        logger.lifecycle("  Play rejects a repeated VERSION_CODE. Bump it in gradle.properties before uploading.")
+        logger.lifecycle("")
+    }
+}
+
+// Release variants only - a debug build is allowed to point at a local server.
+tasks.matching { it.name == "preReleaseBuild" }.configureEach {
+    dependsOn("verifyReleaseConfig")
+}
 
 android {
     namespace = "com.instafact.app"
@@ -17,8 +104,8 @@ android {
         applicationId = "co.instafact"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = appVersionCode ?: 1
+        versionName = appVersionName ?: "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -42,6 +129,10 @@ android {
     }
 
     compileOptions {
+        // java.time is API 26+, but minSdk is 24. Desugaring back-ports it; without this
+        // every screen that renders a timestamp dies with NoClassDefFoundError on
+        // Android 7.0/7.1.
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -63,6 +154,8 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.3")
+
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")

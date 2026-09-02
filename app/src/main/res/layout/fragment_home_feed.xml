@@ -10,7 +10,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <!-- paddingBottom clears the floating bottom nav so the last history card is not
+             hidden behind it. With no history there is no card to clear, and that 104dp
+             of dead space is the only reason the share guide would scroll - so
+             HomeFeedFragment drops it while the empty state is showing. -->
         <androidx.core.widget.NestedScrollView
+            android:id="@+id/feedScrollView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
@@ -220,59 +225,76 @@
                     android:paddingBottom="6dp"
                     tools:listitem="@layout/item_submission" />
 
-                <LinearLayout
+                <!-- The whole guide lives in one card. Loose on the page it read as the
+                     screen's main content, which is the wrong signal: it is help for
+                     somebody who has not shared a reel yet, and the paste box above it is
+                     the thing to actually use. Same corner radius and hairline stroke as
+                     that box, so the two read as siblings. -->
+                <com.google.android.material.card.MaterialCardView
                     android:id="@+id/emptyStateContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:orientation="vertical"
-                    android:paddingVertical="40dp"
-                    android:visibility="gone">
+                    android:layout_marginTop="14dp"
+                    android:visibility="gone"
+                    app:cardBackgroundColor="@color/brand_surface"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/brand_divider"
+                    app:strokeWidth="1dp">
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:fontFamily="@font/inter"
-                        android:text="@string/home_empty_title"
-                        android:textAlignment="center"
-                        android:textColor="@color/brand_text"
-                        android:textSize="17sp"
-                        android:textStyle="bold" />
+                        android:orientation="vertical"
+                        android:padding="14dp">
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:fontFamily="@font/inter"
-                        android:text="@string/home_empty_subtitle"
-                        android:textAlignment="center"
-                        android:textColor="@color/brand_muted"
-                        android:textSize="13.5sp" />
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/inter"
+                            android:text="@string/home_empty_title"
+                            android:textAlignment="center"
+                            android:textColor="@color/brand_text"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
 
-                    <!-- Three numbered steps rather than prose: the share flow is a
-                         sequence, and a person scanning an empty screen will follow
-                         numbered steps but will not read a paragraph. -->
-                    <include
-                        android:id="@+id/emptyStep1"
-                        layout="@layout/item_share_step"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="22dp" />
+                        <!-- Three screenshots of the real Instagram share flow rather than
+                             prose: the thing being explained is a sequence of taps, and a
+                             picture of the button beats any description of it. -->
+                        <include
+                            android:id="@+id/emptyStep1"
+                            layout="@layout/item_share_step"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp" />
 
-                    <include
-                        android:id="@+id/emptyStep2"
-                        layout="@layout/item_share_step"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp" />
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginTop="10dp"
+                            android:background="@color/brand_divider" />
 
-                    <include
-                        android:id="@+id/emptyStep3"
-                        layout="@layout/item_share_step"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp" />
-                </LinearLayout>
+                        <include
+                            android:id="@+id/emptyStep2"
+                            layout="@layout/item_share_step"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginTop="10dp"
+                            android:background="@color/brand_divider" />
+
+                        <include
+                            android:id="@+id/emptyStep3"
+                            layout="@layout/item_share_step"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
 
                 <LinearLayout
                     android:id="@+id/errorStateContainer"

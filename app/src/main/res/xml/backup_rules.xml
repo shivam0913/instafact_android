@@ -6,9 +6,17 @@
   meant a reinstall silently restored someone else's - or a stale - signed-in session
   from Google Drive, and it put bearer tokens in cloud storage. The FCM token in there
   is device-specific too, so restoring it onto another device is wrong regardless.
+
+  The received-notification list is excluded for the same reason: it quotes the reels a
+  user checked and holds query ids only that account can open, so restoring it onto a
+  different device - or a different account after a reinstall - leaks one user's activity
+  to the next.
 -->
 <full-backup-content>
     <exclude
         domain="sharedpref"
         path="instafact_prefs.xml" />
+    <exclude
+        domain="sharedpref"
+        path="instafact_notifications.xml" />
 </full-backup-content>

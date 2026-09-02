@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Explains what the confidence gauge on the result card actually measures. Shown when
+  the "?" beside Confidence Score is tapped.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="20dp"
+    android:paddingTop="20dp"
+    android:paddingBottom="18dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:background="@drawable/bg_light_icon_circle"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="19dp"
+                android:layout_height="19dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_help_outline"
+                app:tint="@color/brand_primary" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:fontFamily="@font/inter"
+            android:text="@string/detail_confidence_help_title"
+            android:textColor="@color/brand_text"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:fontFamily="@font/inter"
+        android:lineSpacingExtra="3dp"
+        android:text="@string/detail_confidence_help_body"
+        android:textColor="@color/brand_muted"
+        android:textSize="13.5sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="16dp"
+        android:background="@color/brand_divider" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:drawablePadding="10dp"
+        android:fontFamily="@font/inter"
+        android:gravity="center_vertical"
+        android:text="@string/detail_confidence_help_high"
+        android:textColor="@color/brand_text"
+        android:textSize="13sp"
+        app:drawableStartCompat="@drawable/bg_confidence_dot_high" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:drawablePadding="10dp"
+        android:fontFamily="@font/inter"
+        android:gravity="center_vertical"
+        android:text="@string/detail_confidence_help_medium"
+        android:textColor="@color/brand_text"
+        android:textSize="13sp"
+        app:drawableStartCompat="@drawable/bg_confidence_dot_medium" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:drawablePadding="10dp"
+        android:fontFamily="@font/inter"
+        android:gravity="center_vertical"
+        android:text="@string/detail_confidence_help_low"
+        android:textColor="@color/brand_text"
+        android:textSize="13sp"
+        app:drawableStartCompat="@drawable/bg_confidence_dot_low" />
+</LinearLayout>

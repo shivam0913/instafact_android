@@ -57,11 +57,11 @@
     <string name="paste_url_required">Paste a Reel or Short URL to continue.</string>
     <string name="history_card_caption">Your Fact-Checks</string>
     <string name="see_all">See all</string>
-    <string name="home_empty_title">No fact-checks yet</string>
-    <string name="home_empty_subtitle">Here\'s how to check your first reel</string>
-    <string name="home_empty_step_1">Open a Reel or Short and tap <b>Share</b></string>
-    <string name="home_empty_step_2">Pick <b>InstaFact</b> from the share sheet</string>
-    <string name="home_empty_step_3">We fact-check it and notify you</string>
+    <string name="home_empty_title">How to share a reel to InstaFact</string>
+    <string name="home_empty_step_1">Tap the send button</string>
+    <string name="home_empty_step_2">Tap the share button</string>
+    <string name="home_empty_step_3">Select InstaFact from the list</string>
+    <string name="home_empty_step_image_description">Step %1$d: %2$s</string>
     <string name="explore_title">Explore</string>
     <string name="explore_subtitle">Browse what people are checking right now.</string>
     <string name="explore_empty">No public fact-checks are available yet.</string>
@@ -181,7 +181,7 @@
     <string name="detail_retry_started">Rechecking this reel…</string>
     <string name="detail_result_pending">The result is still being processed. Check back soon or wait for a push notification.</string>
     <string name="detail_feedback_caption">Was this helpful?</string>
-    <string name="detail_ai_button">Chat with Expert</string>
+    <string name="detail_ai_button">Chat with InstaFact AI</string>
     <string name="detail_sources">Sources</string>
     <string name="detail_link_label">Open original link</string>
     <string name="feedback_up">Helpful</string>
@@ -256,6 +256,7 @@
     <string name="checked_relative_time">Checked %1$s</string>
     <string name="app_version_format">App Version %1$s</string>
     <string name="play_store_unavailable">Couldn’t open the Play Store right now.</string>
+    <string name="link_open_failed">No app on this phone can open that link.</string>
     <string name="platform_instagram">Instagram Reel</string>
     <string name="platform_youtube">YouTube Short</string>
     <string name="platform_instagram_source">Instagram</string>
@@ -304,6 +305,12 @@
     <string name="detail_tags">Tags</string>
     <string name="detail_result_header">FACT-CHECK RESULT</string>
     <string name="detail_confidence_score">Confidence Score</string>
+    <string name="detail_confidence_help_title">What is the Confidence Score?</string>
+    <string name="detail_confidence_help_body">It shows how strong the evidence behind this verdict is — not how false or true the reel is.\n\nA high score means we found clear, consistent information from reliable sources. A low score means the evidence was thin, mixed or hard to verify, so treat the verdict as a starting point rather than the last word.</string>
+    <string name="detail_confidence_help_high" formatted="false">80–100% · Strong, well-supported evidence</string>
+    <string name="detail_confidence_help_medium" formatted="false">50–79% · Reasonable evidence, some gaps</string>
+    <string name="detail_confidence_help_low" formatted="false">Below 50% · Limited or conflicting evidence</string>
+    <string name="detail_confidence_help_got_it">Got it</string>
     <string name="detail_tab_summary">Summary</string>
     <string name="detail_tab_details">Details</string>
     <string name="detail_tab_references">References</string>
@@ -420,4 +427,15 @@
     <string name="walk_shared_body">You can share this with confidence \u2014 it\'s true!</string>
     <string name="walk_shared_reel_title">Healthy eating</string>
     <string name="walk_shared_reel_body">for a stronger immune system</string>
+
+    <!-- First-run spotlight tutorial -->
+    <string name="coach_skip">Skip tour</string>
+    <string name="coach_done">Got it</string>
+    <string name="coach_step_counter">STEP %1$d OF %2$d</string>
+    <string name="coach_paste_title">Paste a link here</string>
+    <string name="coach_paste_body">Drop an Instagram Reel or YouTube Short link and we\'ll fact-check it for you.</string>
+    <string name="coach_explore_title">Explore other checks</string>
+    <string name="coach_explore_body">See what everyone else is fact-checking, and browse verified results by topic.</string>
+    <string name="coach_profile_title">Your profile</string>
+    <string name="coach_profile_body">Update your details, see your referral code, and manage your account here.</string>
 </resources>

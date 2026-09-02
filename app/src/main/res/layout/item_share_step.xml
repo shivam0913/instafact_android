@@ -1,52 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  One row of the "how to share" guide on the empty home screen: a numbered badge, an
-  icon, and a short line of copy. Included three times rather than duplicated inline so
-  the three steps stay visually identical.
+  One step of the "how to share a reel" guide on the empty home screen.
+
+  Caption on the left, screenshot on the right, per the mockup. The two columns are
+  weighted rather than fixed so the screenshot keeps its share of a narrow screen instead
+  of being squeezed out by a long caption.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_walk_card"
+    android:baselineAligned="false"
     android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:paddingStart="14dp"
-    android:paddingTop="14dp"
-    android:paddingEnd="16dp"
-    android:paddingBottom="14dp">
+    android:orientation="horizontal">
 
-    <TextView
-        android:id="@+id/stepNumberTextView"
-        android:layout_width="26dp"
-        android:layout_height="26dp"
-        android:background="@drawable/bg_walk_logo_tile"
-        android:fontFamily="@font/inter"
-        android:gravity="center"
-        android:textColor="@color/brand_primary"
-        android:textSize="13sp"
-        android:textStyle="bold"
-        tools:text="1" />
-
-    <ImageView
-        android:id="@+id/stepIconImageView"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:layout_marginStart="12dp"
-        android:contentDescription="@null"
-        app:tint="@color/brand_primary"
-        tools:src="@drawable/ic_share_upload" />
-
-    <TextView
-        android:id="@+id/stepTextTextView"
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:layout_weight="1"
-        android:fontFamily="@font/inter"
-        android:lineSpacingExtra="2dp"
-        android:textColor="@color/brand_text"
-        android:textSize="13.5sp"
-        tools:text="Open a Reel in Instagram and tap Share" />
+        android:layout_weight="0.36"
+        android:orientation="vertical"
+        android:paddingEnd="10dp">
+
+        <TextView
+            android:id="@+id/stepNumberTextView"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:background="@drawable/bg_step_number"
+            android:fontFamily="@font/inter"
+            android:gravity="center"
+            android:textColor="@color/brand_primary"
+            android:textSize="12.5sp"
+            android:textStyle="bold"
+            tools:text="1" />
+
+        <TextView
+            android:id="@+id/stepTextTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="9dp"
+            android:fontFamily="@font/inter"
+            android:lineSpacingExtra="1dp"
+            android:textColor="@color/brand_text"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            tools:text="Tap the send button" />
+    </LinearLayout>
+
+    <!-- Height is fixed and the width follows from fitCenter, so all three screenshots
+         line up on a common baseline despite their different aspect ratios.
+
+         104dp is the largest that still lets the whole guide - title plus three steps -
+         sit on one screen below the paste card, once the card padding is accounted for. That is the point of the screen: someone
+         who has never shared a reel should see all three taps at once, not discover step
+         three by scrolling. -->
+    <ImageView
+        android:id="@+id/stepImageView"
+        android:layout_width="0dp"
+        android:layout_height="104dp"
+        android:layout_weight="0.64"
+        android:adjustViewBounds="true"
+        android:contentDescription="@null"
+        android:scaleType="fitCenter"
+        tools:src="@drawable/img_share_step_2" />
 </LinearLayout>

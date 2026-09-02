@@ -4,6 +4,7 @@
 build/
 app/build/
 local.properties
-app/google-services.json
 captures/
 *.iml
+# Android Studio writes signed build output here.
+app/release/

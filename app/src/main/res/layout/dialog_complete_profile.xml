@@ -93,19 +93,34 @@
             app:selectionRequired="false"
             app:singleSelection="true" />
 
+        <!-- Age group: a dropdown, not chips. Six ranges wrap onto three rows of chips
+             and dominate the dialog; collapsed to one line it stays a compact form. -->
         <TextView
             style="@style/Instafact.ProfileFieldLabel"
             android:layout_marginTop="18dp"
             android:text="@string/profile_age_group" />
 
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/ageGroupChipGroup"
+        <AutoCompleteTextView
+            android:id="@+id/ageGroupAutoCompleteTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            app:chipSpacingVertical="2dp"
-            app:selectionRequired="false"
-            app:singleSelection="true" />
+            android:background="@drawable/bg_login_input"
+            android:cursorVisible="false"
+            android:drawableEnd="@drawable/ic_chevron_down_small"
+            android:dropDownVerticalOffset="4dp"
+            android:focusable="false"
+            android:fontFamily="@font/inter"
+            android:hint="@string/profile_select_age_group"
+            android:importantForAutofill="no"
+            android:inputType="none"
+            android:paddingStart="16dp"
+            android:paddingTop="14dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="14dp"
+            android:textColor="@color/brand_text"
+            android:textColorHint="@color/brand_muted"
+            android:textSize="15sp" />
 
         <TextView
             android:id="@+id/profileErrorTextView"

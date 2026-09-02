@@ -65,13 +65,17 @@
                     android:src="@drawable/ic_notification_outline"
                     app:tint="@color/brand_text" />
 
+                <!-- Shown only when something is actually unread; visibility is driven
+                     from NotificationStore in onResume, same as the Home header. -->
                 <View
+                    android:id="@+id/notificationDotView"
                     android:layout_width="9dp"
                     android:layout_height="9dp"
                     android:layout_gravity="top|end"
                     android:layout_marginTop="8dp"
                     android:layout_marginEnd="8dp"
-                    android:background="@drawable/bg_home_notification_dot" />
+                    android:background="@drawable/bg_home_notification_dot"
+                    android:visibility="gone" />
             </FrameLayout>
         </LinearLayout>
 

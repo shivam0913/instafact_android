@@ -38,6 +38,8 @@ import com.instafact.app.utils.applySystemBarInsets
 import com.instafact.app.utils.configureSystemBars
 import com.instafact.app.utils.UnsupportedPlatformDialog
 import com.instafact.app.viewmodel.HomeViewModel
+import com.instafact.app.ui.coachmark.CoachMarkSequence
+import com.instafact.app.ui.coachmark.CoachStep
 
 class HomeActivity : AppCompatActivity() {
 
@@ -49,6 +51,9 @@ class HomeActivity : AppCompatActivity() {
 
     private var selectedTabId: Int = R.id.menu_home
     private var lastBackPressedAt: Long = 0L
+
+    /** Long enough for the Home fragment to inflate and lay out its paste card. */
+    private val tourStartDelayMs = 700L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,7 +89,54 @@ class HomeActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             switchTab(resolveInitialTab(intent))
             handleIncomingSharedUrl(intent)
+            maybeShowFirstRunTour()
         }
+    }
+
+    /**
+     * Walks a first-time user through the three things they need to know.
+     *
+     * Delayed because the Home feed is a fragment: its paste card does not exist yet
+     * when onCreate runs, and the tour needs the real on-screen bounds of the views it
+     * points at. Steps whose target is missing are skipped by the sequence itself.
+     */
+    private fun maybeShowFirstRunTour() {
+        val preferenceManager = (application as InstafactApplication).appContainer.preferenceManager
+        if (preferenceManager.hasSeenHomeTour()) return
+
+        binding.root.postDelayed(
+            {
+                if (isFinishing || isDestroyed) return@postDelayed
+                // Marked as soon as it starts: someone who backs out mid-tour has
+                // already seen it, and re-showing it on the next launch would nag.
+                preferenceManager.setHomeTourSeen()
+                Analytics.logTourStarted()
+                CoachMarkSequence.show(
+                    activity = this,
+                    steps = listOf(
+                        CoachStep(
+                            targetProvider = { findViewById(R.id.shareCtaCard) },
+                            titleRes = R.string.coach_paste_title,
+                            bodyRes = R.string.coach_paste_body,
+                        ),
+                        CoachStep(
+                            targetProvider = { binding.navExploreItem },
+                            titleRes = R.string.coach_explore_title,
+                            bodyRes = R.string.coach_explore_body,
+                            paddingPx = 6,
+                        ),
+                        CoachStep(
+                            targetProvider = { binding.navProfileItem },
+                            titleRes = R.string.coach_profile_title,
+                            bodyRes = R.string.coach_profile_body,
+                            paddingPx = 6,
+                        ),
+                    ),
+                    onFinished = { completed -> Analytics.logTourFinished(completed) },
+                )
+            },
+            tourStartDelayMs,
+        )
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -280,7 +332,12 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun openInstagram() {
-        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.instagram.com/")))
+        // A device with no browser and no Instagram app has nothing to handle this.
+        runCatching {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.instagram.com/")))
+        }.onFailure {
+            Toast.makeText(this, R.string.link_open_failed, Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun shareApp() {

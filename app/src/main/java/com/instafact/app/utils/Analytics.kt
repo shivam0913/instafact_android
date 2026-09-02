@@ -233,6 +233,15 @@ object Analytics {
         log(EVENT_NOTIFICATION_PERMISSION, bundleOf(PARAM_GRANTED to granted))
     }
 
+    // ---- First-run tour -----------------------------------------------------------------
+
+    fun logTourStarted() = log(EVENT_TOUR_STARTED, Bundle())
+
+    /** completed=false means they hit Skip, which is the drop-off signal worth watching. */
+    fun logTourFinished(completed: Boolean) {
+        log(EVENT_TOUR_FINISHED, bundleOf(PARAM_COMPLETED to completed))
+    }
+
     // ---- Unsupported platforms ---------------------------------------------------------
 
     /** Counts demand for platforms we do not fact-check yet, to prioritise what to build. */
@@ -353,6 +362,8 @@ object Analytics {
     private const val EVENT_PUSH_OPENED = "push_opened"
     private const val EVENT_NOTIFICATION_PERMISSION = "notification_permission"
     private const val EVENT_UNSUPPORTED_PLATFORM = "unsupported_platform"
+    private const val EVENT_TOUR_STARTED = "tour_started"
+    private const val EVENT_TOUR_FINISHED = "tour_finished"
     private const val EVENT_RATING_PROMPT_SHOWN = "rating_prompt_shown"
     private const val EVENT_RATING_DISMISSED = "rating_dismissed"
     private const val EVENT_RATING_SUBMITTED = "rating_submitted"
@@ -375,6 +386,7 @@ object Analytics {
     private const val PARAM_MESSAGE_LENGTH = "message_length"
     private const val PARAM_SECTION = "section"
     private const val PARAM_TRIGGER = "trigger"
+    private const val PARAM_COMPLETED = "completed"
     private const val PARAM_RATING = "rating"
     private const val PARAM_REASONS = "reasons"
     private const val PARAM_REASON_COUNT = "reason_count"

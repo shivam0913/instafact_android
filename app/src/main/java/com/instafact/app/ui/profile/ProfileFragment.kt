@@ -36,6 +36,7 @@ import com.instafact.app.databinding.FragmentProfileBinding
 import com.instafact.app.ui.support.HelpSupportActivity
 import com.instafact.app.ui.splash.SplashActivity
 import com.instafact.app.utils.Analytics
+import com.instafact.app.utils.NotificationStore
 import com.instafact.app.utils.SessionDebugLogger
 import com.instafact.app.utils.toInstantOrNull
 import com.instafact.app.utils.UiState
@@ -140,6 +141,18 @@ class ProfileFragment : Fragment() {
 
         observeProfile()
         viewModel.loadProfile()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Coming back from NotificationsActivity is the usual way the count changes,
+        // so re-read it here rather than only when the fragment is first created.
+        refreshNotificationDot()
+    }
+
+    private fun refreshNotificationDot() {
+        binding.notificationDotView.isVisible =
+            NotificationStore(requireContext()).unreadCount() > 0
     }
 
     private fun observeProfile() {

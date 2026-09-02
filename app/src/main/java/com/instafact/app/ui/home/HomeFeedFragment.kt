@@ -46,6 +46,7 @@ import com.instafact.app.utils.analyticsPlatform
 import com.instafact.app.viewmodel.HomeViewModel
 import androidx.fragment.app.activityViewModels
 import androidx.core.text.HtmlCompat
+import androidx.core.view.updatePadding
 
 class HomeFeedFragment : Fragment() {
 
@@ -305,12 +306,27 @@ class HomeFeedFragment : Fragment() {
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
+    private companion object {
+        /** Clearance so the last history card is not hidden behind the floating nav. */
+        const val LIST_BOTTOM_PADDING_DP = 104
+        /** Just enough to keep the guide off the nav; no list means no clearance needed. */
+        const val EMPTY_STATE_BOTTOM_PADDING_DP = 12
+    }
+
     private fun renderItems(items: List<HistoryItemResponse>) {
         val filteredItems = selectedFilter?.let { verdict ->
             items.filter { it.verdict.equals(verdict, ignoreCase = true) }
         } ?: items
         submissionAdapter.submitList(filteredItems)
-        binding.emptyStateContainer.visibility = if (filteredItems.isEmpty()) View.VISIBLE else View.GONE
+
+        val isEmpty = filteredItems.isEmpty()
+        binding.emptyStateContainer.visibility = if (isEmpty) View.VISIBLE else View.GONE
+        // The share guide is meant to be taken in at a glance, and the nav clearance is
+        // the only thing that pushed it past the fold. There is no list to clear when the
+        // guide is up, so the padding comes off and the whole thing fits unscrolled.
+        binding.feedScrollView.updatePadding(
+            bottom = if (isEmpty) dp(EMPTY_STATE_BOTTOM_PADDING_DP) else dp(LIST_BOTTOM_PADDING_DP),
+        )
     }
 
     private fun renderBrand() {
@@ -384,14 +400,18 @@ class HomeFeedFragment : Fragment() {
      */
     private fun renderEmptyStateGuide() {
         listOf(
-            Triple(binding.emptyStep1, R.string.home_empty_step_1, R.drawable.ic_share_upload),
-            Triple(binding.emptyStep2, R.string.home_empty_step_2, R.drawable.ic_shield_check),
-            Triple(binding.emptyStep3, R.string.home_empty_step_3, R.drawable.ic_check_badge),
-        ).forEachIndexed { index, (step, textRes, iconRes) ->
+            Triple(binding.emptyStep1, R.string.home_empty_step_1, R.drawable.img_share_step_1),
+            Triple(binding.emptyStep2, R.string.home_empty_step_2, R.drawable.img_share_step_2),
+            Triple(binding.emptyStep3, R.string.home_empty_step_3, R.drawable.img_share_step_3),
+        ).forEachIndexed { index, (step, textRes, imageRes) ->
+            val caption = getString(textRes)
             step.stepNumberTextView.text = (index + 1).toString()
-            step.stepIconImageView.setImageResource(iconRes)
-            step.stepTextTextView.text =
-                HtmlCompat.fromHtml(getString(textRes), HtmlCompat.FROM_HTML_MODE_LEGACY)
+            step.stepImageView.setImageResource(imageRes)
+            step.stepTextTextView.text = HtmlCompat.fromHtml(caption, HtmlCompat.FROM_HTML_MODE_LEGACY)
+            // The screenshot carries the meaning, so it needs the caption as its
+            // description - otherwise the whole guide is silent to a screen reader.
+            step.stepImageView.contentDescription =
+                getString(R.string.home_empty_step_image_description, index + 1, caption)
         }
     }
 

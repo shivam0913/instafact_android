@@ -6,6 +6,7 @@ import java.security.MessageDigest
 
 class PreferenceManager(context: Context) {
 
+    private val appContext = context.applicationContext
     private val sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun saveSession(
@@ -65,7 +66,19 @@ class PreferenceManager(context: Context) {
         }
     }
 
+    /**
+     * Removes every trace of the signed-in user from this device.
+     *
+     * The received-notification list is wiped here rather than at the call sites: it is
+     * this user's data, it quotes the reels they checked, and it holds query ids only
+     * they can open. Leaving it behind meant the next account to sign in on a shared
+     * phone saw the previous one's notifications. Three separate paths call this - manual
+     * logout, account deletion and session expiry - so centralising it is the only way
+     * the next path added cannot forget.
+     */
     fun clearUserSession() {
+        NotificationStore(appContext).clear()
+
         val fcmToken = getFcmToken()
         sharedPreferences.edit {
             remove(KEY_USER_ID)
@@ -128,6 +141,18 @@ class PreferenceManager(context: Context) {
         if (sharedPreferences.getBoolean(KEY_FIRST_RESULT_SEEN, false)) return false
         sharedPreferences.edit { putBoolean(KEY_FIRST_RESULT_SEEN, true) }
         return true
+    }
+
+    /**
+     * First-run spotlight tour state.
+     *
+     * Outside clearUserSession() like the rating flag: someone who has already been
+     * shown around should not be walked through it again after signing out and back in.
+     */
+    fun hasSeenHomeTour(): Boolean = sharedPreferences.getBoolean(KEY_HOME_TOUR_SEEN, false)
+
+    fun setHomeTourSeen() {
+        sharedPreferences.edit { putBoolean(KEY_HOME_TOUR_SEEN, true) }
     }
 
     fun hasUserVoted(queryId: Int): Boolean {
@@ -234,6 +259,7 @@ class PreferenceManager(context: Context) {
         private const val KEY_VOTE_TYPES = "vote_types"
         private const val KEY_RATING_PROMPT_COMPLETED = "rating_prompt_completed"
         private const val KEY_FIRST_RESULT_SEEN = "first_result_seen"
+        private const val KEY_HOME_TOUR_SEEN = "home_tour_seen"
         private const val KEY_VIDEO_METADATA_TITLE = "video_metadata_title"
         private const val KEY_VIDEO_METADATA_CHANNEL_NAME = "video_metadata_channel_name"
         private const val KEY_VIDEO_METADATA_CREATOR_ID = "video_metadata_creator_id"

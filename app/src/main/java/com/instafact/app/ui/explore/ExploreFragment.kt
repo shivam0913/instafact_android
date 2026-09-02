@@ -13,7 +13,6 @@ import com.instafact.app.InstafactApplication
 import com.instafact.app.data.model.ExploreItemResponse
 import com.instafact.app.databinding.FragmentExploreBinding
 import com.instafact.app.ui.detail.DetailActivity
-import com.instafact.app.ui.home.HomeActivity
 import com.instafact.app.utils.Analytics
 import com.instafact.app.utils.IntentExtras
 import com.instafact.app.utils.UiState
@@ -71,9 +70,6 @@ class ExploreFragment : Fragment() {
         binding.swipeRefreshLayout.setColorSchemeResources(com.instafact.app.R.color.brand_primary)
         binding.swipeRefreshLayout.setOnRefreshListener { viewModel.loadExplore() }
         binding.retryButton.setOnClickListener { viewModel.loadExplore() }
-        binding.exploreDrawerButton.setOnClickListener {
-            (activity as? HomeActivity)?.openDrawer()
-        }
 
         observeState()
         if (viewModel.exploreState.value == UiState.Idle) {

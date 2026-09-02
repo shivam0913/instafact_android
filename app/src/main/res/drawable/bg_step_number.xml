@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Quiet marker behind the step number.
+
+  A soft tint rather than a solid brand fill: the numbers are there to order the steps,
+  not to compete with the screenshots beside them, which are what the reader is actually
+  meant to look at.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@color/brand_primary_soft" />
+</shape>

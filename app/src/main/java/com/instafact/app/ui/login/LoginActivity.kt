@@ -359,10 +359,14 @@ class LoginActivity : AppCompatActivity() {
         val genderOptions = genderOptions()
         val ageGroupOptions = ageGroupOptions()
 
-        // Chips instead of dropdowns: with three and six short options respectively, a
-        // tap beats opening a menu, and it matches the filter chips on Home.
+        // Gender stays as chips - four short options fit on two rows and a tap beats
+        // opening a menu. Age group has six ranges, which wrap badly and swamp the
+        // dialog, so it collapses into a dropdown instead.
         dialogBinding.genderChipGroup.addChoiceChips(genderOptions, profile.gender)
-        dialogBinding.ageGroupChipGroup.addChoiceChips(ageGroupOptions, profile.ageGroup)
+        dialogBinding.ageGroupAutoCompleteTextView.bindChoiceDropdown(
+            ageGroupOptions,
+            profile.ageGroup,
+        )
         dialogBinding.nameEditText.setText(profile.name.orEmpty())
 
         val dialog = MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_Instafact_Dialog)
@@ -386,7 +390,7 @@ class LoginActivity : AppCompatActivity() {
         dialogBinding.profileSaveButton.setOnClickListener {
             val fullName = dialogBinding.nameEditText.text?.toString()?.trim().orEmpty()
             val gender = dialogBinding.genderChipGroup.selectedValue()
-            val ageGroup = dialogBinding.ageGroupChipGroup.selectedValue()
+            val ageGroup = dialogBinding.ageGroupAutoCompleteTextView.selectedValue()
 
             when {
                 fullName.isBlank() -> showError(getString(R.string.profile_name_required))
@@ -408,10 +412,6 @@ class LoginActivity : AppCompatActivity() {
             ContextCompat.getDrawable(this, R.drawable.bg_dialog_surface),
         )
         dialog.show()
-    }
-
-    private fun setupDropdown(view: AutoCompleteTextView, options: List<String>) {
-        view.setAdapter(ArrayAdapter(this, android.R.layout.simple_list_item_1, options))
     }
 
     private fun genderOptions(): List<Pair<String, String>> = listOf(
@@ -451,6 +451,33 @@ class LoginActivity : AppCompatActivity() {
             )
         }
     }
+
+    /**
+     * Fills a dropdown from (label, value) pairs and preselects [selectedValue].
+     *
+     * The chosen value is kept on the view's tag rather than reverse-mapped from the
+     * shown text, so labels stay free to change without touching what the API receives.
+     */
+    private fun AutoCompleteTextView.bindChoiceDropdown(
+        options: List<Pair<String, String>>,
+        selectedValue: String?,
+    ) {
+        setAdapter(
+            ArrayAdapter(this@LoginActivity, android.R.layout.simple_list_item_1, options.map { it.first }),
+        )
+        options.firstOrNull { it.second == selectedValue }?.let { (label, value) ->
+            setText(label, false)
+            tag = value
+        }
+        setOnItemClickListener { _, _, position, _ ->
+            tag = options[position].second
+        }
+        // focusable="false" in the layout stops the keyboard appearing, but it also
+        // stops the menu opening on tap, so open it explicitly.
+        setOnClickListener { showDropDown() }
+    }
+
+    private fun AutoCompleteTextView.selectedValue(): String? = tag as? String
 
     private fun ChipGroup.selectedValue(): String? {
         return (0 until childCount)

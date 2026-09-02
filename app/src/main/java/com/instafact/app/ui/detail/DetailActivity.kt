@@ -33,6 +33,7 @@ import com.instafact.app.R
 import com.instafact.app.data.model.DetailResponse
 import com.instafact.app.data.model.FeedbackType
 import com.instafact.app.databinding.ActivityDetailBinding
+import com.instafact.app.databinding.DialogConfidenceHelpBinding
 import com.instafact.app.databinding.DialogReferencesBinding
 import com.instafact.app.ui.login.LoginActivity
 import com.instafact.app.ui.webview.InAppBrowserActivity
@@ -162,6 +163,7 @@ class DetailActivity : AppCompatActivity() {
         binding.tabReferencesContainer.setOnClickListener { selectTab(DetailTab.REFERENCES, true) }
         binding.viewAllReferencesTextView.setOnClickListener { showAllReferencesDialog() }
         binding.retryCheckButton.setOnClickListener { retryFailedCheck() }
+        binding.confidenceHelpButton.setOnClickListener { showConfidenceHelpDialog() }
         updateFeedbackButtons(null)
         selectTab(DetailTab.SUMMARY, false)
     }
@@ -574,11 +576,22 @@ class DetailActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * Hands the original reel to whichever app claims it.
+     *
+     * Guarded because the URL comes from the backend and this is wired to the thumbnail,
+     * the URL text and the preview container on every result screen: a malformed link, or
+     * a device with nothing registered for it, would otherwise be an uncaught
+     * ActivityNotFoundException on one of the most-tapped controls in the app.
+     */
     private fun openVideoLink() {
         val url = currentVideoUrl.ifBlank { currentDetail?.videoUrl.orEmpty() }
         if (url.isBlank()) return
         currentDetail?.let { Analytics.logSourceVideoOpened(it.queryId, url.analyticsPlatform()) }
-        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+            .onFailure {
+                Toast.makeText(this, R.string.link_open_failed, Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun openInAppBrowser(url: String, title: String) {
@@ -740,6 +753,24 @@ class DetailActivity : AppCompatActivity() {
                 if (selected) R.color.brand_primary else android.R.color.transparent,
             ),
         )
+    }
+
+    /**
+     * Explains the confidence gauge, which people read as "how false is this?" when it
+     * actually describes how much evidence the verdict rests on.
+     */
+    private fun showConfidenceHelpDialog() {
+        val dialogBinding = DialogConfidenceHelpBinding.inflate(layoutInflater)
+        val dialog = MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_Instafact_Dialog)
+            .setView(dialogBinding.root)
+            .setPositiveButton(R.string.detail_confidence_help_got_it, null)
+            .create()
+
+        // Material 1.12 resolves the dialog background to a tinted surface; force our own.
+        dialog.window?.setBackgroundDrawable(
+            ContextCompat.getDrawable(this, R.drawable.bg_dialog_surface),
+        )
+        dialog.show()
     }
 
     private fun showAllReferencesDialog() {

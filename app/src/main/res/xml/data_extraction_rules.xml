@@ -8,16 +8,27 @@
   cloud-backup excludes the session from Google Drive backups; device-transfer excludes
   it from direct device-to-device migration too, since an auth token belongs to the
   device that obtained it.
+
+  The received-notification list is excluded for the same reason: it quotes the reels a
+  user checked and holds query ids only that account can open, so restoring it onto a
+  different device - or a different account after a reinstall - leaks one user's activity
+  to the next.
 -->
 <data-extraction-rules>
     <cloud-backup>
         <exclude
             domain="sharedpref"
             path="instafact_prefs.xml" />
+        <exclude
+            domain="sharedpref"
+            path="instafact_notifications.xml" />
     </cloud-backup>
     <device-transfer>
         <exclude
             domain="sharedpref"
             path="instafact_prefs.xml" />
+        <exclude
+            domain="sharedpref"
+            path="instafact_notifications.xml" />
     </device-transfer>
 </data-extraction-rules>

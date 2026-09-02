@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The caption that floats beside the spotlight: step counter, title, body, and the
+  Skip / Next controls. Positioned at runtime above or below the highlighted view
+  depending on where that view sits on screen.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/coachCaptionContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:background="@drawable/bg_coach_caption"
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingTop="18dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="14dp">
+
+        <TextView
+            android:id="@+id/coachStepTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/inter"
+            android:textColor="#99FFFFFF"
+            android:textSize="11.5sp"
+            android:textStyle="bold"
+            tools:text="STEP 1 OF 3" />
+
+        <TextView
+            android:id="@+id/coachTitleTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:fontFamily="@font/inter"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            tools:text="Paste a link here" />
+
+        <TextView
+            android:id="@+id/coachBodyTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:fontFamily="@font/inter"
+            android:lineSpacingExtra="3dp"
+            android:textColor="#CCFFFFFF"
+            android:textSize="14sp"
+            tools:text="Drop any Instagram Reel or YouTube Short link here and we'll fact-check it." />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- Skip stays visible on every step, as an always-available exit. -->
+            <TextView
+                android:id="@+id/coachSkipButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:fontFamily="@font/inter"
+                android:paddingTop="10dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="10dp"
+                android:text="@string/coach_skip"
+                android:textColor="#99FFFFFF"
+                android:textSize="14sp" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/coachNextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_coach_next"
+                android:fontFamily="@font/inter"
+                android:minWidth="96dp"
+                android:paddingStart="22dp"
+                android:paddingTop="11dp"
+                android:paddingEnd="22dp"
+                android:paddingBottom="11dp"
+                android:text="@string/next"
+                android:textAlignment="center"
+                android:textColor="@color/brand_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

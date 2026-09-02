@@ -1,13 +1,28 @@
 package com.instafact.app.utils
 
 import android.util.Log
+import com.instafact.app.BuildConfig
 import com.instafact.app.data.model.OTPRequestResponse
 
+/**
+ * Verbose session tracing for local debugging.
+ *
+ * These lines carry auth tokens, refresh tokens, phone numbers and FCM tokens - anything
+ * that reads logcat (a bug report capture, a diagnostics tool, an attached cable) would
+ * otherwise pick up a working bearer token. Every entry point is therefore gated on
+ * [enabled], so a release build produces nothing regardless of who adds a new call site.
+ *
+ * The release ProGuard rules also strip Log.d/Log.v as a second layer; neither is meant
+ * to be the only thing standing between a token and a log file.
+ */
 object SessionDebugLogger {
 
     private const val TAG = "InstafactDebug"
 
+    private val enabled = BuildConfig.DEBUG
+
     fun logSessionSnapshot(source: String, preferenceManager: PreferenceManager) {
+        if (!enabled) return
         Log.d(
             TAG,
             buildString {
@@ -22,10 +37,12 @@ object SessionDebugLogger {
     }
 
     fun logFcmToken(source: String, token: String) {
+        if (!enabled) return
         Log.d(TAG, "[$source] fcm_token=$token")
     }
 
     fun logTokenRefresh(source: String, success: Boolean, detail: String? = null) {
+        if (!enabled) return
         Log.d(
             TAG,
             buildString {
@@ -39,6 +56,7 @@ object SessionDebugLogger {
     }
 
     fun logOtpRequest(source: String, phoneNumber: String, response: OTPRequestResponse) {
+        if (!enabled) return
         Log.d(
             TAG,
             buildString {
@@ -53,10 +71,12 @@ object SessionDebugLogger {
     }
 
     fun logMetadataFetchStart(source: String, videoUrl: String) {
+        if (!enabled) return
         Log.d(TAG, "[$source] metadata_fetch=start, video_url=$videoUrl")
     }
 
     fun logMetadataFetchResult(source: String, videoUrl: String, metadata: ClientVideoMetadata?) {
+        if (!enabled) return
         Log.d(
             TAG,
             buildString {
@@ -72,10 +92,12 @@ object SessionDebugLogger {
     }
 
     fun logMetadataFetchFailure(source: String, videoUrl: String, throwable: Throwable) {
+        if (!enabled) return
         Log.w(TAG, "[$source] metadata_fetch=failure, video_url=$videoUrl", throwable)
     }
 
     fun logMetadataFetchSkipped(source: String, videoUrl: String, reason: String) {
+        if (!enabled) return
         Log.d(TAG, "[$source] metadata_fetch=skipped, video_url=$videoUrl, reason=$reason")
     }
 
@@ -86,6 +108,7 @@ object SessionDebugLogger {
         statusCode: Int,
         bodySnippet: String?,
     ) {
+        if (!enabled) return
         Log.d(
             TAG,
             buildString {
@@ -99,6 +122,7 @@ object SessionDebugLogger {
     }
 
     fun logProfileImageLoad(source: String, imageUrl: String?, status: String, detail: String? = null) {
+        if (!enabled) return
         Log.d(
             TAG,
             buildString {

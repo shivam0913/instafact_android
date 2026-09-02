@@ -13,12 +13,21 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 
+/**
+ * Swaps an expired access token for a fresh pair on the first 401.
+ *
+ * [gson] is injected rather than constructed here: it must be the same instance Retrofit
+ * uses, because the refresh models - like every other model - rely on that instance's
+ * LOWER_CASE_WITH_UNDERSCORES naming policy to produce `refresh_token`. A bare Gson()
+ * sends `refreshToken`, which the API rejects, and the failure is invisible until an
+ * access token actually expires.
+ */
 class TokenRefreshAuthenticator(
     private val preferenceManager: PreferenceManager,
     private val sessionExpiryHandler: SessionExpiryHandler,
+    private val gson: Gson,
 ) : Authenticator {
 
-    private val gson = Gson()
     private val refreshClient = OkHttpClient()
 
     override fun authenticate(route: okhttp3.Route?, response: Response): Request? {
