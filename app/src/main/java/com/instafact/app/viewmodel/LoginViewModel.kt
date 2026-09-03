@@ -10,6 +10,7 @@ import com.instafact.app.data.model.UserProfileResponse
 import com.instafact.app.data.model.UserProfileUpdateRequest
 import com.instafact.app.utils.Analytics
 import com.instafact.app.utils.Countries
+import com.instafact.app.utils.PhoneNumberInput
 import com.instafact.app.utils.Country
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -56,39 +57,15 @@ class LoginViewModel(
     }
 
     /**
-     * Null when the number is acceptable for the selected country, else the reason.
-     *
-     * Mirrors phone_validation.py on the server. Catching junk here saves a round trip
-     * and, more importantly, saves sending a real SMS to a number that cannot exist -
-     * every OTP costs money whether or not it can be delivered.
+     * Delegates to [PhoneNumberInput] so the Activity's live validation and the send path
+     * cannot drift apart, and so the rules can be tested without building a ViewModel.
      */
-    fun validatePhoneNumber(rawPhoneNumber: String, country: Country): String? {
-        val digits = rawPhoneNumber.filter { it.isDigit() }
-        val expected = country.nationalLength
-        return when {
-            digits.isEmpty() -> "Enter your mobile number."
-            expected != null && digits.length != expected ->
-                "Enter a valid $expected-digit number for ${country.name}."
-            expected == null && digits.length !in Countries.FALLBACK_LENGTH_RANGE ->
-                "Enter a valid mobile number for ${country.name}."
-            // Indian mobile numbers are always 6-9; 0-5 are landline and service ranges
-            // that can never receive an SMS.
-            country.dialCode == INDIA_DIAL_CODE && digits.first() !in '6'..'9' ->
-                "Indian mobile numbers start with 6, 7, 8 or 9."
-            isObviouslyFake(digits) -> "Enter a real mobile number."
-            else -> null
-        }
-    }
-
-    /** All-same digits or a perfect run, e.g. 5555555555 and 9876543210. */
-    private fun isObviouslyFake(digits: String): Boolean {
-        if (digits.all { it == digits.first() }) return true
-        return ASCENDING.contains(digits) || DESCENDING.contains(digits)
-    }
+    fun validatePhoneNumber(rawPhoneNumber: String, country: Country): String? =
+        PhoneNumberInput.validate(rawPhoneNumber, country)
 
     fun requestOtp(rawPhoneNumber: String) {
         val country = _uiState.value?.country ?: Countries.default()
-        val phoneNumber = rawPhoneNumber.filter { it.isDigit() }
+        val phoneNumber = PhoneNumberInput.normalize(rawPhoneNumber, country)
         val validationError = validatePhoneNumber(phoneNumber, country)
         if (validationError != null) {
             _uiState.value = _uiState.value?.copy(
@@ -351,8 +328,5 @@ class LoginViewModel(
         /** Must match otp_resend_cooldown_seconds on the server, or the button enables early. */
         private const val RESEND_COOLDOWN_SECONDS = 60
 
-        private const val INDIA_DIAL_CODE = "91"
-        private const val ASCENDING = "01234567890123456789"
-        private const val DESCENDING = "98765432109876543210"
     }
 }
