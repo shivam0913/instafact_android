@@ -3,6 +3,10 @@
 Every bug fixed and every change made to the Android client, written so the same work can be
 repeated on iOS. Ordered by area rather than by date, because that is how you would port it.
 
+Sections 1-11 are the pre-launch audit and everything after it, in detail. Section 12 covers
+the feature work that came before, in less depth - it was construction rather than repair, so
+there is no root cause to record.
+
 Each entry gives the **symptom** a user saw, the **cause**, the Android **fix**, and what iOS
 needs. The iOS column is not a guess: the statuses below were read out of
 `ios/Instafact.swiftpm/Sources/InstafactApp/` in the main repo on 2026-09-03. Anything marked
@@ -451,6 +455,64 @@ platforms cannot be compared in one report.
 
 ---
 
+## 12. Earlier Build-Out (May - August 2026)
+
+The sections above cover the pre-launch audit and everything after it, where each change
+answered a specific defect. What follows is the feature work that came before, listed so this
+document genuinely covers the app from its first commit. These are constructions rather than
+fixes, so there is no "cause" to record - but iOS needs the same behaviour, and a few carry
+decisions that are easy to get wrong twice.
+
+### 12.1 Fact-check results are markdown, not plain text
+
+The backend returns markdown in the summary, explanation and chat replies. Rendering it raw
+put literal `**` and `##` on screen.
+
+`MarkdownRenderer` wraps Markwon with `CorePlugin` and `LinkifyPlugin`, sets
+`LinkMovementMethod`, and routes every link tap through a callback instead of letting the
+`TextView` fire its own intent - that is what keeps sources in the in-app browser rather than
+ejecting the user to Chrome. `highlightColor` is cleared because Markwon's default selection
+flash looks like a rendering bug on a coloured card.
+
+**iOS.** `RichText.swift` covers this. The link-callback point matters equally there: a
+`Text` with a markdown link opens Safari unless the tap is intercepted.
+
+### 12.2 On-device video metadata
+
+`VideoMetadataFetcher` resolves a title, channel name, creator id and thumbnail on the client
+before submitting, so a history row has something to show immediately instead of a bare URL
+while the check runs. YouTube goes through oEmbed; Instagram is scraped from the page with a
+browser user agent and a 12s timeout.
+
+The Instagram path is inherently fragile - it depends on page markup that Instagram can change
+without notice. It must fail soft: a null return has to leave the submission working with no
+metadata, never block or fail it.
+
+**iOS.** `VideoMetadataFetcher.swift` does the YouTube oEmbed half. Check whether the
+Instagram path exists and whether both fail soft.
+
+### 12.3 Result feedback
+
+Helpful / not helpful on a result, posted per query with the verdict attached, so accuracy
+complaints can be read against what was actually shown. The vote is cached locally so the
+buttons stay in their voted state across restarts rather than inviting an endless re-vote.
+
+### 12.4 Screens built in this period
+
+Bottom navigation and a drawer; Explore with trending, most shared and recently verified;
+Profile with an edit sheet and a photo flow that uploads through a pre-signed URL rather than
+sending image bytes to the API; Help & Support with an FAQ list; the in-app browser; the
+five-slide onboarding walkthrough; the chat thread itself; and the detail screen.
+
+The detail screen was reworked twice - once for layout and once when the backend's result
+sections changed shape - and is the densest screen in the app: verdict header, confidence
+gauge, tabbed summary and references, feedback row, retry, and the entry point into chat.
+
+Also from this period: the Inter font family, the verdict icon set, and the profile header
+showing the user's real initial rather than a placeholder.
+
+---
+
 ## Commit Index
 
 | Commit | Date | Summary |
@@ -464,3 +526,9 @@ platforms cannot be compared in one report.
 | `ca82e9a` | 2026-08-31 | Onboarding gated on sign-in; session excluded from backup |
 | `a9c80ea` | 2026-08-31 | Analytics, rating flow, unsupported-platform dialog, portrait lock |
 | `57569eb` | 2026-08-31 | Country picker, notification centre, walkthrough and detail rework |
+| `bdf11c2` | 2026-08-14 | Detail and profile layout rework, Inter font, verdict icons |
+| `b238cb1` | 2026-07-24 | Markdown rendering for results and chat replies |
+| `c41404a` | 2026-07-21 | Video metadata fetcher, in-app browser, Help & Support, edit profile |
+| `5c76ce3` | 2026-05-27 | Real profile initial on the home header |
+| `6e67af9` | 2026-05-26 | Bottom nav, drawer, Explore, Profile, walkthrough, chat |
+| `491075d` | 2026-05-12 | Initial Android app commit |
