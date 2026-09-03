@@ -17,7 +17,7 @@ import com.instafact.app.utils.Analytics
 import com.instafact.app.utils.IntentExtras
 import com.instafact.app.utils.UiState
 import com.instafact.app.utils.ViewModelFactory
-import com.instafact.app.utils.applySystemBarInsets
+import com.instafact.app.utils.applySystemBarAndImeInsets
 import com.instafact.app.utils.configureSystemBars
 import com.instafact.app.viewmodel.DetailViewModel
 
@@ -32,6 +32,9 @@ class ChatActivity : AppCompatActivity() {
 
     private var queryId: Int = -1
 
+    /** Held while a send is in flight so a failure can restore it to the input. */
+    private var lastSentMessage: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityChatBinding.inflate(layoutInflater)
@@ -42,7 +45,9 @@ class ChatActivity : AppCompatActivity() {
             navigationBarColorRes = R.color.brand_surface,
             lightStatusBar = true,
         )
-        binding.rootLayout.applySystemBarInsets(applyTop = true, applyBottom = true)
+        // Not applySystemBarInsets: this screen has a text field, so it has to react
+        // to the keyboard as well or the input ends up underneath it.
+        binding.rootLayout.applySystemBarAndImeInsets()
 
         if (!(application as InstafactApplication).appContainer.preferenceManager.isLoggedIn()) {
             startActivity(Intent(this, LoginActivity::class.java))
@@ -72,6 +77,16 @@ class ChatActivity : AppCompatActivity() {
         binding.chatRecyclerView.adapter = chatAdapter
         binding.sendChatButton.setOnClickListener {
             sendCurrentMessage()
+        }
+        // The keyboard shortens the list; without this the newest message ends up hidden
+        // behind it, which looks identical to the message not having been sent.
+        binding.chatRecyclerView.addOnLayoutChangeListener { _, _, _, _, bottom, _, _, _, oldBottom ->
+            if (bottom < oldBottom) {
+                val lastIndex = chatAdapter.itemCount - 1
+                if (lastIndex >= 0) binding.chatRecyclerView.post {
+                    binding.chatRecyclerView.scrollToPosition(lastIndex)
+                }
+            }
         }
         binding.suggestionOneButton.setOnClickListener { appendSuggestion(binding.suggestionOneButton.text.toString()) }
         binding.suggestionTwoButton.setOnClickListener { appendSuggestion(binding.suggestionTwoButton.text.toString()) }
@@ -107,15 +122,27 @@ class ChatActivity : AppCompatActivity() {
         viewModel.chatSendState.observe(this) { state ->
             when (state) {
                 UiState.Idle -> Unit
-                UiState.Loading -> binding.sendChatButton.isEnabled = false
+                UiState.Loading -> {
+                    binding.sendChatButton.isEnabled = false
+                    // Visibly dimmed, so a second tap plainly does nothing.
+                    binding.sendChatButton.alpha = 0.45f
+                }
                 is UiState.Success -> {
                     binding.sendChatButton.isEnabled = true
-                    binding.chatInputEditText.text?.clear()
+                    binding.sendChatButton.alpha = 1f
+                    lastSentMessage = null
                     viewModel.resetChatSendState()
                 }
 
                 is UiState.Error -> {
                     binding.sendChatButton.isEnabled = true
+                    binding.sendChatButton.alpha = 1f
+                    // Give the question back rather than making them retype it.
+                    lastSentMessage?.let { failed ->
+                        binding.chatInputEditText.setText(failed)
+                        binding.chatInputEditText.setSelection(failed.length)
+                        lastSentMessage = null
+                    }
                     Toast.makeText(this, state.message, Toast.LENGTH_SHORT).show()
                     viewModel.resetChatSendState()
                 }
@@ -128,12 +155,23 @@ class ChatActivity : AppCompatActivity() {
         binding.chatInputEditText.setSelection(value.length)
     }
 
+    /**
+     * Sends the typed question.
+     *
+     * The box is emptied here rather than on success: the message is already on screen by
+     * the time this returns, so leaving the text sitting in the input made it look like
+     * nothing had been sent. It is held in [lastSentMessage] so a failure can put it back
+     * instead of losing what the user typed.
+     */
     private fun sendCurrentMessage() {
         val message = binding.chatInputEditText.text?.toString().orEmpty().trim()
         if (message.isBlank()) {
             Toast.makeText(this, getString(R.string.chat_empty_error), Toast.LENGTH_SHORT).show()
             return
         }
+        lastSentMessage = message
+        binding.chatInputEditText.text?.clear()
+        binding.suggestionsContainer.isVisible = false
         viewModel.sendChatMessage(queryId, message)
     }
 

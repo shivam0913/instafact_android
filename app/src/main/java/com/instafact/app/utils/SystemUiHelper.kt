@@ -45,3 +45,33 @@ fun View.applySystemBarInsets(
     }
     ViewCompat.requestApplyInsets(this)
 }
+
+
+/**
+ * Like [applySystemBarInsets], but also lifts the view clear of the on-screen keyboard.
+ *
+ * configureSystemBars calls setDecorFitsSystemWindows(false), which puts this app in
+ * charge of its own insets - the system will not resize the window for the IME, and
+ * windowSoftInputMode="adjustResize" is ignored in that mode. Any screen with a text
+ * field therefore has to consume Type.ime() itself, or the keyboard simply covers the
+ * input and the user cannot see what they are typing.
+ *
+ * The bottom padding is the larger of the two rather than their sum: when the keyboard is
+ * up it already covers the navigation bar, so adding both would leave a gap the height of
+ * the nav bar between the keyboard and the input.
+ */
+fun View.applySystemBarAndImeInsets(applyTop: Boolean = true) {
+    val initialPaddingTop = paddingTop
+    val initialPaddingBottom = paddingBottom
+
+    ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
+        val systemInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+        val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
+        view.updatePadding(
+            top = initialPaddingTop + if (applyTop) systemInsets.top else 0,
+            bottom = initialPaddingBottom + maxOf(systemInsets.bottom, imeInsets.bottom),
+        )
+        insets
+    }
+    ViewCompat.requestApplyInsets(this)
+}

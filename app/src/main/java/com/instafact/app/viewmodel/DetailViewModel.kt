@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.instafact.app.data.model.ChatMessageItem
+import com.instafact.app.data.model.LocalChatIds
 import com.instafact.app.data.model.DetailResponse
 import com.instafact.app.data.model.FeedbackType
 import com.instafact.app.data.repository.SubmissionRepository
@@ -82,10 +83,37 @@ class DetailViewModel(
         }
     }
 
+    /**
+     * Sends a follow-up question and shows it immediately.
+     *
+     * The reply takes ten to thirty seconds. Waiting for it before showing anything meant
+     * the screen sat completely still after a tap and then jumped straight to a finished
+     * conversation, which reads as the app having ignored you. The question and a typing
+     * bubble are appended locally first, then replaced by the server's list.
+     */
     fun sendChatMessage(queryId: Int, message: String) {
         // Length only. The question itself is user content and never leaves the device.
         Analytics.logChatMessageSent(queryId, message.length)
         _chatSendState.value = UiState.Loading
+
+        val existingMessages = (_chatState.value as? UiState.Success)?.data.orEmpty()
+        _chatState.value = UiState.Success(
+            existingMessages + listOf(
+                ChatMessageItem(
+                    id = LocalChatIds.PENDING_QUESTION,
+                    role = "user",
+                    content = message,
+                    createdAt = "",
+                ),
+                ChatMessageItem(
+                    id = LocalChatIds.PENDING_REPLY,
+                    role = "assistant",
+                    content = "",
+                    createdAt = "",
+                ),
+            ),
+        )
+
         viewModelScope.launch {
             submissionRepository.sendChatMessage(queryId, message)
                 .onSuccess { response ->
@@ -93,6 +121,9 @@ class DetailViewModel(
                     _chatSendState.value = UiState.Success(response.answer)
                 }
                 .onFailure { error ->
+                    // Roll the optimistic pair back so the screen matches the server
+                    // again; the Activity puts the text back in the box to retry.
+                    _chatState.value = UiState.Success(existingMessages)
                     _chatSendState.value = UiState.Error(error.message.orEmpty())
                 }
         }

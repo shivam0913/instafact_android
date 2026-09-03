@@ -234,6 +234,7 @@
     <string name="follow_up_questions">Follow-up questions</string>
     <string name="chat_screen_title">Ask Instafact AI</string>
     <string name="chat_section_subtitle">Ask about the verdict, explanation, or transcript for this fact-check.</string>
+    <string name="chat_assistant_name">Instafact AI</string>
     <string name="chat_empty">No previous questions yet. Start the conversation below.</string>
     <string name="chat_hint">Ask a follow-up…</string>
     <string name="chat_empty_error">Type a question before sending.</string>

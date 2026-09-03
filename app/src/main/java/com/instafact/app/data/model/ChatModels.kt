@@ -23,3 +23,15 @@ data class ChatMessageItem(
     val content: String,
     val createdAt: String,
 )
+
+/**
+ * Ids for messages that exist only on this device while a reply is in flight.
+ *
+ * Negative so they can never collide with a server row id, which lets the adapter tell an
+ * optimistic bubble from a real one and lets DiffUtil replace them cleanly when the real
+ * messages arrive.
+ */
+object LocalChatIds {
+    const val PENDING_QUESTION = -1
+    const val PENDING_REPLY = -2
+}
