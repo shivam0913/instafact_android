@@ -2,6 +2,9 @@
 
 Production-ready Android client for Instafact built with Kotlin, XML layouts, MVVM, Retrofit, and Firebase Cloud Messaging.
 
+[FIXES.md](FIXES.md) records every bug fixed and change made so far, with the cause behind each
+one and what the iOS client needs to match it.
+
 ## Structure
 
 ```text
@@ -138,7 +141,11 @@ Optional notification payload fields like `title` and `body` are also supported.
 
 ## Important Notes
 
-- Cleartext traffic is enabled for local development against HTTP backends.
-- Switch to HTTPS for production.
+- Cleartext traffic is permitted only for localhost, and only in debug builds, via the
+  `src/debug` network security config override. Release builds are HTTPS-only.
+- `verifyReleaseConfig` fails a release build unless `API_BASE_URL` is set, https, and
+  slash-terminated. Version code and name live in `gradle.properties`.
+- `proguard-rules.pro` must keep `data.model.**`: Gson resolves those reflectively, so R8
+  stripping them breaks every request in release builds only.
 - Share handling is wired through `HomeActivity` so the app appears in the Android share sheet.
 - The app is placed under `android/` to avoid colliding with the existing backend `app/` package in this repo.
