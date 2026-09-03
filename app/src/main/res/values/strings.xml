@@ -257,9 +257,6 @@
     <string name="chat_empty_error">Type a question before sending.</string>
     <string name="chat_source_title">Source</string>
     <string name="send">Send</string>
-    <string name="chat_suggestion_one">Show me studies</string>
-    <string name="chat_suggestion_two">Is it good for skin?</string>
-    <string name="chat_suggestion_three">More</string>
     <string name="share_result">Share result</string>
     <string name="share_friends_message">Fact-check Reels and Shorts with Instafact.\n\nInstall the app: %1$s</string>
     <string name="logged_out">Logged out successfully.</string>

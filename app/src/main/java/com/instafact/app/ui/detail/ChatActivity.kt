@@ -81,16 +81,27 @@ class ChatActivity : AppCompatActivity() {
         // The keyboard shortens the list; without this the newest message ends up hidden
         // behind it, which looks identical to the message not having been sent.
         binding.chatRecyclerView.addOnLayoutChangeListener { _, _, _, _, bottom, _, _, _, oldBottom ->
-            if (bottom < oldBottom) {
-                val lastIndex = chatAdapter.itemCount - 1
-                if (lastIndex >= 0) binding.chatRecyclerView.post {
-                    binding.chatRecyclerView.scrollToPosition(lastIndex)
-                }
+            if (bottom < oldBottom) scrollToLatest()
+        }
+        binding.chatInputEditText.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) scrollToLatest()
+        }
+    }
+
+    /**
+     * Parks the list on its newest item.
+     *
+     * Posted rather than called inline because the item that was just added has not been
+     * laid out yet at the point the callers run, and re-read from the adapter so a list
+     * that changed again in the meantime cannot scroll past the end.
+     */
+    private fun scrollToLatest() {
+        binding.chatRecyclerView.post {
+            val lastIndex = chatAdapter.itemCount - 1
+            if (lastIndex >= 0) {
+                binding.chatRecyclerView.scrollToPosition(lastIndex)
             }
         }
-        binding.suggestionOneButton.setOnClickListener { appendSuggestion(binding.suggestionOneButton.text.toString()) }
-        binding.suggestionTwoButton.setOnClickListener { appendSuggestion(binding.suggestionTwoButton.text.toString()) }
-        binding.suggestionThreeButton.setOnClickListener { appendSuggestion(binding.suggestionThreeButton.text.toString()) }
     }
 
     private fun observeState() {
@@ -104,11 +115,11 @@ class ChatActivity : AppCompatActivity() {
 
                 is UiState.Success -> {
                     binding.chatProgressBar.isVisible = false
-                    chatAdapter.submitList(state.data)
                     binding.chatEmptyTextView.isVisible = state.data.isEmpty()
-                    if (state.data.isNotEmpty()) {
-                        binding.chatRecyclerView.scrollToPosition(state.data.lastIndex)
-                    }
+                    // The scroll has to wait for the commit callback: submitList diffs on a
+                    // background thread, so scrolling on the next line would run against the
+                    // old item count and leave the newest message off screen.
+                    chatAdapter.submitList(state.data) { scrollToLatest() }
                 }
 
                 is UiState.Error -> {
@@ -150,11 +161,6 @@ class ChatActivity : AppCompatActivity() {
         }
     }
 
-    private fun appendSuggestion(value: String) {
-        binding.chatInputEditText.setText(value)
-        binding.chatInputEditText.setSelection(value.length)
-    }
-
     /**
      * Sends the typed question.
      *
@@ -171,7 +177,6 @@ class ChatActivity : AppCompatActivity() {
         }
         lastSentMessage = message
         binding.chatInputEditText.text?.clear()
-        binding.suggestionsContainer.isVisible = false
         viewModel.sendChatMessage(queryId, message)
     }
 

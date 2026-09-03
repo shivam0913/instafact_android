@@ -55,7 +55,7 @@
         android:paddingHorizontal="16dp"
         android:paddingTop="8dp"
         android:paddingBottom="12dp"
-        app:layout_constraintBottom_toTopOf="@id/suggestionsContainer"
+        app:layout_constraintBottom_toTopOf="@id/inputContainer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/topBar"
@@ -69,7 +69,7 @@
         android:text="@string/chat_empty"
         android:textColor="@color/brand_muted"
         android:textSize="14sp"
-        app:layout_constraintBottom_toTopOf="@id/suggestionsContainer"
+        app:layout_constraintBottom_toTopOf="@id/inputContainer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/topBar"
@@ -80,65 +80,10 @@
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/suggestionsContainer"
+        app:layout_constraintBottom_toTopOf="@id/inputContainer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/topBar" />
-
-    <HorizontalScrollView
-        android:id="@+id/suggestionsContainer"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:fillViewport="false"
-        android:scrollbars="none"
-        app:layout_constraintBottom_toTopOf="@id/inputContainer"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingBottom="10dp">
-
-            <TextView
-                android:id="@+id/suggestionOneButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_chat_suggestion"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="8dp"
-                android:text="@string/chat_suggestion_one"
-                android:textColor="@color/brand_primary"
-                android:textSize="12sp" />
-
-            <TextView
-                android:id="@+id/suggestionTwoButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/bg_chat_suggestion"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="8dp"
-                android:text="@string/chat_suggestion_two"
-                android:textColor="@color/brand_primary"
-                android:textSize="12sp" />
-
-            <TextView
-                android:id="@+id/suggestionThreeButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/bg_chat_suggestion"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="8dp"
-                android:text="@string/chat_suggestion_three"
-                android:textColor="@color/brand_primary"
-                android:textSize="12sp" />
-        </LinearLayout>
-    </HorizontalScrollView>
 
     <LinearLayout
         android:id="@+id/inputContainer"
