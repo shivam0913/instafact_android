@@ -232,7 +232,6 @@ class HomeActivity : AppCompatActivity() {
                     binding.shareStatusCard.visibility = View.GONE
                     Toast.makeText(this, getString(R.string.submission_success), Toast.LENGTH_SHORT).show()
                     switchTab(R.id.menu_home)
-                    viewModel.loadHistory()
                     viewModel.loadExplore()
                     viewModel.resetSubmitState()
                 }

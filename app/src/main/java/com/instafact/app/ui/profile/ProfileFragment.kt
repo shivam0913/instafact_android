@@ -30,6 +30,7 @@ import com.instafact.app.R
 import com.instafact.app.data.model.UserProfileResponse
 import com.instafact.app.ui.notifications.NotificationsActivity
 import com.instafact.app.ui.rating.RatingPrompt
+import com.instafact.app.ui.report.ReportIssueDialog
 import com.instafact.app.data.model.UserProfileUpdateRequest
 import com.instafact.app.databinding.DialogEditProfileBinding
 import com.instafact.app.databinding.FragmentProfileBinding
@@ -138,6 +139,9 @@ class ProfileFragment : Fragment() {
             startActivity(Intent(requireContext(), NotificationsActivity::class.java))
         }
         binding.copyReferralButton.setOnClickListener { copyReferralCode() }
+        binding.reportIssueButton.setOnClickListener {
+            ReportIssueDialog.show(requireContext(), viewLifecycleOwner)
+        }
 
         observeProfile()
         viewModel.loadProfile()

@@ -5,6 +5,8 @@ import retrofit2.HttpException
 import com.instafact.app.R
 import com.instafact.app.data.api.ApiService
 import com.instafact.app.data.model.AppFeedbackRequest
+import com.instafact.app.data.model.IssueReportResponse
+import com.instafact.app.data.model.IssueReportRequest
 import com.instafact.app.data.model.AppFeedbackResponse
 import com.instafact.app.data.model.ChatHistoryResponse
 import com.instafact.app.data.model.ChatMessageRequest
@@ -206,6 +208,37 @@ class SubmissionRepository(
                     comment = comment?.takeIf { it.isNotBlank() },
                     trigger = trigger,
                     appVersion = appVersion,
+                ),
+            )
+        }.fold(
+            onSuccess = { Result.success(it) },
+            onFailure = { throwable ->
+                Result.failure(Exception(ApiErrorParser.getMessage(context, throwable), throwable))
+            },
+        )
+    }
+
+    /**
+     * Sends a reported problem, with the device context needed to reproduce it.
+     *
+     * Unlike submitAppFeedback this surfaces its failure: the user pressed a button that
+     * said "Send report" and is owed an honest answer about whether it went.
+     */
+    suspend fun reportIssue(
+        category: String,
+        message: String?,
+        appVersion: String?,
+        deviceModel: String?,
+        osVersion: String?,
+    ): Result<IssueReportResponse> = withContext(Dispatchers.IO) {
+        runCatching {
+            apiService.reportIssue(
+                IssueReportRequest(
+                    category = category,
+                    message = message?.takeIf { it.isNotBlank() },
+                    appVersion = appVersion,
+                    deviceModel = deviceModel,
+                    osVersion = osVersion,
                 ),
             )
         }.fold(

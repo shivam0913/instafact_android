@@ -436,6 +436,12 @@ class HomeFeedFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         refreshNotificationDot()
+        // Quiet refresh, not a full load: a reel shared while the app was backgrounded,
+        // or one that finished server-side in the meantime, would otherwise sit stale
+        // until the user pulled to refresh or restarted the app.
+        if (viewModel.historyState.value != UiState.Idle) {
+            viewModel.refreshHistoryQuietly()
+        }
     }
 
     override fun onDestroyView() {

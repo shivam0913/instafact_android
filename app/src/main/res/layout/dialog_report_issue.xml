@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Report an issue: pick what went wrong, optionally describe it.
+
+  Chips rather than a dropdown - six short options are faster to tap than to open, and
+  they match the rating dialog this sits beside in Profile.
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fillViewport="true"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="24dp"
+        android:paddingTop="26dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="18dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/inter"
+            android:text="@string/report_issue_title"
+            android:textColor="@color/brand_text"
+            android:textSize="19sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:fontFamily="@font/inter"
+            android:text="@string/report_issue_subtitle"
+            android:textColor="@color/brand_muted"
+            android:textSize="13sp" />
+
+        <TextView
+            style="@style/Instafact.ProfileFieldLabel"
+            android:layout_marginTop="20dp"
+            android:text="@string/report_issue_what" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/issueChipGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:chipSpacingVertical="2dp"
+            app:selectionRequired="false"
+            app:singleSelection="true" />
+
+        <TextView
+            style="@style/Instafact.ProfileFieldLabel"
+            android:layout_marginTop="18dp"
+            android:text="@string/report_issue_details" />
+
+        <EditText
+            android:id="@+id/issueDetailsEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_login_input"
+            android:fontFamily="@font/inter"
+            android:gravity="top|start"
+            android:hint="@string/report_issue_details_hint"
+            android:importantForAutofill="no"
+            android:inputType="textMultiLine|textCapSentences"
+            android:maxLength="4000"
+            android:minLines="3"
+            android:paddingStart="16dp"
+            android:paddingTop="14dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="14dp"
+            android:textColor="@color/brand_text"
+            android:textColorHint="@color/brand_muted"
+            android:textSize="14.5sp" />
+
+        <TextView
+            android:id="@+id/issueErrorTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:fontFamily="@font/inter"
+            android:textColor="@color/brand_status_false"
+            android:textSize="12.5sp"
+            android:visibility="gone"
+            tools:text="Pick what went wrong." />
+
+        <TextView
+            android:id="@+id/issueSubmitButton"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/bg_auth_cta"
+            android:fontFamily="@font/inter"
+            android:gravity="center"
+            android:text="@string/report_issue_submit"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/issueCancelButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:background="?attr/selectableItemBackground"
+            android:fontFamily="@font/inter"
+            android:gravity="center"
+            android:padding="14dp"
+            android:text="@string/report_issue_cancel"
+            android:textColor="@color/brand_muted"
+            android:textSize="14sp" />
+    </LinearLayout>
+</ScrollView>
