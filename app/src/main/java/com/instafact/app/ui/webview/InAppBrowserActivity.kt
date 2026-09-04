@@ -11,6 +11,7 @@ import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import com.instafact.app.R
 import com.instafact.app.databinding.ActivityInAppBrowserBinding
@@ -71,7 +72,15 @@ class InAppBrowserActivity : AppCompatActivity() {
                 view?.loadUrl(nextUri.toString())
                 return true
             }
+
+            // Fires whenever the back/forward list changes, which is the only signal
+            // WebView gives that canGoBack() has flipped.
+            override fun doUpdateVisitedHistory(view: WebView?, url: String?, isReload: Boolean) {
+                super.doUpdateVisitedHistory(view, url, isReload)
+                syncBackCallback()
+            }
         }
+        onBackPressedDispatcher.addCallback(this, webHistoryBackCallback)
 
         val uri = runCatching { Uri.parse(url) }.getOrNull()
         if (url.isBlank() || uri == null || !uri.isWebUrl()) {
@@ -106,12 +115,25 @@ class InAppBrowserActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        if (::binding.isInitialized && binding.webView.canGoBack()) {
-            binding.webView.goBack()
-        } else {
-            super.onBackPressed()
+    /**
+     * Back walks the page history before it leaves the browser.
+     *
+     * Registered on the dispatcher rather than overriding onBackPressed: from targetSdk 36
+     * predictive back is on by default, and the framework then routes back through
+     * OnBackInvokedDispatcher and never calls the legacy method. Overriding it would have
+     * left every back gesture closing the browser outright.
+     *
+     * Enabled only while there is history to walk. When there is none the system handles
+     * back itself, which is what lets the predictive close animation play.
+     */
+    private val webHistoryBackCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            if (binding.webView.canGoBack()) binding.webView.goBack() else isEnabled = false
         }
     }
+
+    private fun syncBackCallback() {
+        webHistoryBackCallback.isEnabled = binding.webView.canGoBack()
+    }
+
 }

@@ -98,12 +98,12 @@ tasks.matching { it.name == "preReleaseBuild" }.configureEach {
 
 android {
     namespace = "com.instafact.app"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "co.instafact"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         versionCode = appVersionCode ?: 1
         versionName = appVersionName ?: "1.0.0"
 

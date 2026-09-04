@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <style name="TextAppearance.Instafact.BottomNav.Active" parent="TextAppearance.Material3.LabelSmall">
         <item name="android:textSize">9sp</item>
         <item name="android:fontFamily">@font/inter</item>
@@ -48,7 +48,9 @@
         <item name="android:textColor">@color/brand_text</item>
         <item name="android:textSize">20sp</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:importantForAutofill">no</item>
+        <!-- API 26+. Older versions have no autofill framework to opt out of, and a style
+             item the platform does not know is ignored rather than fatal. -->
+        <item name="android:importantForAutofill" tools:targetApi="o">no</item>
     </style>
 
     <!--
@@ -96,7 +98,10 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:orientation">horizontal</item>
-        <item name="android:paddingVertical">12dp</item>
+        <!-- Not paddingVertical: that is API 26+, and on 24-25 the row would simply lose
+             its padding and the verdict list would run together. -->
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
     </style>
 
     <style name="WalkVerdictRowIcon">
