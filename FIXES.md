@@ -9,8 +9,8 @@ there is no root cause to record.
 
 Each entry gives the **symptom** a user saw, the **cause**, the Android **fix**, and what iOS
 needs. The iOS column is not a guess: the statuses below were read out of
-`ios/Instafact.swiftpm/Sources/InstafactApp/` in the main repo on 2026-09-03. Anything marked
-*unverified* was not checked and should be before it is trusted.
+`ios/Instafact.swiftpm/Sources/InstafactApp/` in the main repo, and every one marked
+**Ported** was exercised on an iOS 26.4 simulator on 2026-09-04.
 
 > This repository is public. Credentials, server addresses and the review account are
 > deliberately absent from this document.
@@ -20,24 +20,27 @@ needs. The iOS column is not a guess: the statuses below were read out of
 | # | Issue | iOS status |
 | --- | --- | --- |
 | 1 | Token refresh sent the wrong wire names | **Already correct** (`APIClient.swift`) |
-| 2 | Phone numbers typed with a country code rejected on device | **Same bug** (`Countries.swift`) |
-| 3 | Notifications leaked to the next account on a shared device | **Same bug** (`SessionStore.swift`) |
-| 4 | Session tokens copied into cloud backup | **Same exposure** (`UserDefaults`, no exclusion) |
-| 5 | Home did not show a new submission or update its status | **Partial** — reloads after submit, no polling, no refresh on foreground |
+| 2 | Phone numbers typed with a country code rejected on device | **Ported** — `PhoneValidator.normalize` (`Countries.swift`) |
+| 3 | Notifications leaked to the next account on a shared device | **Ported** — `clearUserSession()` clears the store first |
+| 4 | Session tokens copied into cloud backup | **Ported** — Keychain, device-only (`Keychain.swift`) |
+| 5 | Home did not show a new submission or update its status | **Ported** — 5s poll while in flight, quiet refresh on foreground |
 | 6 | Chat did not scroll to the newest message | **Already correct** (`ChatView.swift`) |
 | 7 | Chat input hidden behind the keyboard | **Not applicable** — SwiftUI insets handle it |
-| 8 | Send gave no feedback for 10-30s | **Already correct** — optimistic bubble + `TypingBubble` |
-| 9 | Hardcoded chat suggestion chips | **Same issue** (`ChatView.swift:62`) |
-| 10 | No way to report an issue | **Missing** — no `/report-issue` caller |
-| 11 | In-app browser accepted any URL scheme | **Same gap** (`AppStore.openInApp`) |
+| 8 | Send gave no feedback for 10-30s | **Ported** — the typing bubble existed, the optimistic question did not |
+| 9 | Hardcoded chat suggestion chips | **Ported** — removed |
+| 10 | No way to report an issue | **Ported** — `ReportIssueView.swift` |
+| 11 | In-app browser accepted any URL scheme | **Ported** — http(s) only, everything else to the system |
 | 12 | Push with `query_id` 0 deep linked to a dead screen | **Already correct** (`AppStore.swift`) |
 | 13 | Instagram `/p/` posts rejected by the client | **Already correct** (`VideoURL.swift`) |
 | 14 | Onboarding shown to signed-in users | **Already correct** (gated on `hasSignedIn`) |
 | 15 | Failed checks could not be retried | **Already correct** (`retryCheck`) |
 | 16 | Release build could not reach the server at all | **Android-only** (R8) |
 | 17 | `java.time` crashed every timestamp screen on Android 7 | **Android-only** |
-| 18 | Tokens and phone numbers written to the log | *unverified* |
-| 19 | Cleartext HTTP allowed app-wide | **Likely fine** — no ATS exception in `Info.plist` |
+| 18 | Tokens and phone numbers written to the log | **Verified clean** — no `print`/`os_log`/`NSLog` in the app sources |
+| 19 | Cleartext HTTP allowed app-wide | **Verified** — no `NSAppTransportSecurity` key, so ATS defaults apply |
+
+Three items outside the numbered list were also brought over: the empty-home share guide
+(3.3), the confidence-score help dialog (9), and the "Chat with InstaFact AI" wording.
 
 ---
 
@@ -83,9 +86,13 @@ code is stripped **only when what remains is exactly the national length**, so a
 that happens to start with those digits is left alone. One leading trunk zero is dropped on
 the same condition. Eight unit tests cover it.
 
-**iOS. Same bug.** `Countries.validate` (`Countries.swift:130`) does
-`digits.count != expected` against digits filtered from the raw input, with no dial-code
-handling. Port `PhoneNumberInput.normalize` before `validate` runs.
+**iOS. Ported.** `PhoneValidator.normalize` in `Countries.swift` is a line-for-line port,
+and `validate` now runs on its output, as do all three send paths in `LoginView`. iOS also
+had a second, worse form of the bug: the field capped input at the national length, so a
+pasted `+919876500011` was silently truncated to a *different* valid-looking 10-digit number
+rather than rejected. The cap is now 15, matching Android's fallback, and the dial code is
+stripped by `normalize` instead. All eight Android test cases pass against the Swift
+implementation.
 
 ### 1.3 Registration accepted numbers that can never receive an SMS
 
@@ -116,9 +123,10 @@ logout.
 **Fix.** `PreferenceManager.clearUserSession()` now clears the notification store first, and
 the store is excluded from backup.
 
-**iOS. Same bug.** `SessionStore.clearUserSession()` (`SessionStore.swift:46`) removes the
-session keys and deliberately keeps the push token, but never touches `NotificationStore`.
-`AppStore.logout()` clears in-memory feeds only.
+**iOS. Ported.** `SessionStore` now owns a `NotificationStore` over the same defaults and
+clears it first thing in `clearUserSession()`, so the guarantee holds however the session
+ends — logout, or a 401 expiring it. `AppStore.logout()` and `handleSessionExpiry()` call
+`refreshNotifications()` afterwards so the list on screen empties with it.
 
 ### 2.2 Session tokens were copied to cloud backup
 
@@ -134,10 +142,23 @@ token was restored onto the wrong device.
 `data_extraction_rules.xml` (API 31+ cloud backup and device transfer). Both are needed —
 they cover different OS versions and `minSdk` is 24.
 
-**iOS. Same exposure, different mechanism.** The session lives in `UserDefaults`, which is
-included in iCloud and encrypted local backups. Tokens belong in the Keychain with
-`kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`, which is excluded from backup by
-definition. At minimum move `authToken` and `refreshToken`.
+**iOS. Ported.** `Keychain.swift` stores `authToken` and `refreshToken` with
+`kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`, which is excluded from backup and from
+device transfer by definition. After-first-unlock rather than when-unlocked because a push
+can arrive and be recorded while the phone is locked.
+
+Two things this needs to survive contact with reality, both learned the hard way:
+
+- **The keychain can refuse outright.** A build with no code signing has no
+  `application-identifier` entitlement, and every call returns `errSecMissingEntitlement`.
+  That is every unsigned simulator build, including this project's. `Keychain.set` reports
+  whether the write landed and `SessionStore` falls back to `UserDefaults` when it did not,
+  so a developer build still stays signed in. A signed build — which is every build a user
+  installs — never takes that path.
+- **Migration must verify before it deletes.** The first cut wrote to the keychain and
+  removed the `UserDefaults` copy unconditionally. On an unsigned build that destroyed the
+  session outright: nothing in the keychain, nothing left in defaults, signed out with no
+  way back. It now reads the value back and only then removes the old copy.
 
 ### 2.3 Tokens and phone numbers written to logcat
 
@@ -146,8 +167,9 @@ definition. At minimum move `authToken` and `refreshToken`.
 immediately unless `BuildConfig.DEBUG`, and release builds additionally strip `Log.d`/`Log.v`
 bodies via `-assumenosideeffects`.
 
-**iOS.** *Unverified* — audit any `print`/`os_log` on the auth path and gate it on `#if DEBUG`.
-Note that `os_log` interpolations are private by default but `print` is not.
+**iOS. Verified clean** — there is no `print`, `os_log`, `NSLog` or `debugPrint` anywhere in
+the app sources, on the auth path or off it, so there is nothing to gate. Worth re-checking
+if logging is ever added: `os_log` interpolations are private by default but `print` is not.
 
 ---
 
@@ -179,10 +201,13 @@ Background refreshes deliberately do **not** flip the screen to a spinner or rep
 with an error — that would blank content the user is already reading. Hence
 `loadHistory(showLoading: Boolean)` and `refreshHistoryQuietly()`.
 
-**iOS. Partial.** `AppStore.submit` already calls `loadHistory()` on success, so symptom one
-does not occur. There is no polling and no refresh when the app returns to the foreground, so
-a row still sits on "pending" until the user pulls. Port the poll loop (a cancellable `Task`
-keyed on whether any row is in flight) and refresh on `scenePhase == .active`.
+**iOS. Ported.** `AppStore.loadHistory(showLoading:)` mirrors the Android signature, and
+`syncPolling(with:)` starts a cancellable 5s `Task` while any row is still in flight,
+stopping the moment none are and giving up after five minutes. `refreshOnForeground()` runs
+on `scenePhase == .active`. The in-flight test is `resultState == .inProgress`, which is
+Android's pending/processing set plus a row the backend has given neither status nor
+verdict — equally still being worked on. Polling also stops on logout and on session expiry,
+so a signed-out app cannot keep hitting the server.
 
 ### 3.2 Failed checks could not be retried
 
@@ -201,6 +226,12 @@ Sized to fit unscrolled, which meant dropping the list's bottom-nav clearance wh
 is showing — with no history there is no card to clear, and that padding was the only thing
 pushing the guide past the fold. `HomeFeedFragment` switches bottom padding between 12dp
 (empty) and 104dp (populated).
+
+**iOS. Ported**, screenshots and all — the three PNGs are the same files, and the caption /
+screenshot split keeps Android's 0.36 / 0.64 weights rather than fixed widths. The one number
+that had to change is the screenshot height: 104dp is what fits on one screen *on Android*,
+and against a floating iOS tab bar the equivalent is 88pt. The rule it comes from is the
+point, not the number.
 
 ### 3.4 Loading read as a hang
 
@@ -241,7 +272,13 @@ cleanly, and the typing bubble is shaped like a real assistant message so the an
 it in place.
 
 Clearing the input on tap means a failed send would have thrown away what was typed, so the
-question is restored to the box on error. **iOS already does all of this.**
+question is restored to the box on error.
+
+**iOS. Ported.** The typing bubble and the restore-on-error were already there, but the
+user's own question was not appended locally — so for the length of a round trip the screen
+showed a typing bubble and no question, which is the symptom this fix exists to remove. The
+placeholder now uses descending negative ids, for the same reason `LocalChatIds` does on
+Android, and is removed again if the send fails. The send button dims to 45% to match.
 
 ### 4.3 The list did not follow the newest message
 
@@ -265,9 +302,7 @@ after the data is in hand.
 Three fixed prompts appeared on every reel regardless of subject, so they read as filler.
 Removed the strip, the strings, the handlers and the drawable.
 
-**iOS. Same issue** — `ChatView.swift:62` hardcodes
-`["Show me studies", "Is this safe?", "Explain the verdict"]`. Remove `suggestionRow` and the
-`suggestions` constant.
+**iOS. Ported** — `suggestionRow` and the `suggestions` constant are gone.
 
 ### 4.5 The follow-up guardrail refused on-topic questions *(server-side)*
 
@@ -300,14 +335,20 @@ Unlike the rating prompt, this **surfaces its failure and keeps the dialog open 
 intact** — the user pressed a button that said "Send report", and the description is their
 work to lose.
 
-**iOS. Missing entirely.** No `/report-issue` caller exists. Request body:
+Unknown categories are stored, not rejected, so the two clients need not agree on the list.
+
+**iOS. Ported** as `ReportIssueView.swift`, reached from the same place in Profile — below
+Help & Support, above Rate us. Same six category keys, same open-on-failure behaviour. The
+request body is what `IssueReportRequest` actually declares, which is not what an earlier
+draft of this document claimed:
 
 ```json
-{ "user_id": 0, "category": "wrong_result", "description": "", "app_version": "",
-  "device": "iPhone15,2", "os_version": "iOS 18.2" }
+{ "category": "crash", "message": "", "app_version": "1.0", "platform": "ios",
+  "device_model": "iPhone15,2", "os_version": "iOS 26.4" }
 ```
 
-Unknown categories are stored, not rejected, so the two clients need not agree on the list.
+One iOS-only wrinkle: `uname` reports the *host* architecture on a simulator, so every
+report from one would read `arm64`. `SIMULATOR_MODEL_IDENTIFIER` is preferred when set.
 
 ### 5.2 Rating flow
 
@@ -354,9 +395,8 @@ Now loads `http(s)` only, with anything else handed to the system; `allowFileAcc
 `allowContentAccess` are off; the WebView is detached and destroyed in `onDestroy` (it holds
 an Activity context and leaks the whole screen otherwise).
 
-**iOS. Same gap.** `AppStore.openInApp` (`AppStore.swift:522`) does
-`guard let url = URL(string: urlString)`, which accepts any scheme, and hands it straight to
-`WKWebView.load`. Add the same `http`/`https` allowlist. These URLs come from model output and
+**iOS. Ported.** `AppStore.openInApp` loads `http`/`https` only and hands anything else to
+the system, which asks the user before acting on it. These URLs come from model output and
 from the references list, so they are not trusted input.
 
 ### 7.3 Cleartext traffic
@@ -407,8 +447,10 @@ by enabling core library desugaring.
 ## 9. Screens And Copy
 
 - "Chat with Expert" → "Chat with InstaFact AI". It is an AI; calling it an expert oversells
-  it.
-- The confidence gauge explains itself in a dialog on the `?`.
+  it. **iOS matches.**
+- The confidence gauge explains itself in a dialog on the `?`. **iOS: ported**, same copy;
+  the whole "Confidence Score" label is the tap target rather than the icon alone, which is
+  well under a comfortable touch size by itself.
 - Age group is a dropdown rather than six wrapped chips.
 - Removed the star button in Explore (it did nothing) and the unimplemented "See all" links.
 - The Profile notification dot reflects the unread count instead of always showing.
@@ -488,8 +530,11 @@ The Instagram path is inherently fragile - it depends on page markup that Instag
 without notice. It must fail soft: a null return has to leave the submission working with no
 metadata, never block or fail it.
 
-**iOS.** `VideoMetadataFetcher.swift` does the YouTube oEmbed half. Check whether the
-Instagram path exists and whether both fail soft.
+**iOS. Matches.** `VideoMetadataFetcher.swift` does the YouTube oEmbed half and returns nil
+for Instagram. That is not a gap: Android's `fetch` returns early for Instagram hosts with
+`instagram_metadata_handled_by_backend`, so `fetchInstagramMetadata` is unreachable and the
+server resolves Instagram on both platforms. Both paths fail soft — a nil return leaves the
+submission working with no metadata.
 
 ### 12.3 Result feedback
 
